@@ -1,0 +1,13 @@
+drop table if exists public.sources;
+drop table if exists public.document_versions;
+drop table if exists public.documents;
+drop view if exists public.project_progress;
+drop table if exists public.project_files;
+drop table if exists public.project_decisions;
+drop table if exists public.project_events;
+drop function if exists app.forbid_direct_delete();
+drop table if exists public.project_tasks;
+drop table if exists public.projects;
+drop table if exists public.files;
+drop function if exists app.guard_signatures();
+drop function if exists app.apply_tenant_rls(regclass, text, text, text);

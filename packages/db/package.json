@@ -1,0 +1,27 @@
+{
+  "name": "@lombana/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrator": "./src/migrator.ts"
+  },
+  "scripts": {
+    "migrate": "tsx src/cli.ts up",
+    "rollback": "tsx src/cli.ts down",
+    "reset": "tsx src/cli.ts reset",
+    "status": "tsx src/cli.ts status",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.2"
+  }
+}

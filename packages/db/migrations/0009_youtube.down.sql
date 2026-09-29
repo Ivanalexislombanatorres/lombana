@@ -1,0 +1,11 @@
+delete from public.tools where key in ('youtube-video-planner', 'youtube-publisher');
+delete from public.settings where key = 'youtube.api_project_audited';
+delete from public.role_permissions where permission_code in ('project.approve', 'integration.manage', 'video.publish');
+delete from public.permissions where code in ('project.approve', 'integration.manage', 'video.publish');
+drop table if exists public.video_uploads;
+drop function if exists app.guard_video_upload();
+drop table if exists public.video_projects;
+drop function if exists app.guard_video_project();
+drop function if exists app.file_is_clean(uuid);
+drop table if exists public.integration_secrets;
+drop table if exists public.integrations;

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # PostgreSQL 16 con pgvector (misma versión mayor usada en desarrollo).
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: ci_postgres_pw
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_ADMIN_URL: postgres://postgres:ci_postgres_pw@localhost:5432/lombana_test
+      TEST_DATABASE_APP_URL: postgres://lombana_app:ci_app_pw@localhost:5432/lombana_test
+      LOMBANA_APP_DB_PASSWORD: ci_app_pw
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tipos
+        run: npm run typecheck
+      - name: Base de datos (migraciones reversibles, aislamiento, reglas, regresiones de seguridad)
+        run: npm test
+      - name: Build web
+        run: npm run build
+      - name: Auditoría de dependencias
+        run: npm audit --omit=dev --audit-level=high

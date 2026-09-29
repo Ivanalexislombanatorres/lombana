@@ -1,0 +1,28 @@
+{
+  "name": "lombana",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LOMBANA AI GLOBAL — monorepo (V1 Core)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:migrate": "npm run migrate --workspace @lombana/db",
+    "db:rollback": "npm run rollback --workspace @lombana/db",
+    "db:reset": "npm run reset --workspace @lombana/db",
+    "db:status": "npm run status --workspace @lombana/db",
+    "dev": "npm run dev --workspace @lombana/web",
+    "build": "npm run build --workspace @lombana/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "ci": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "^5.9.3"
+  }
+}
