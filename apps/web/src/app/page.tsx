@@ -10,6 +10,7 @@ const ROADMAP: { name: string; status: 'ready' | 'dev' | 'planned'; note: string
   { name: 'Herramientas', status: 'dev', note: 'Ebooks, plantillas Excel, análisis de documentos' },
   { name: 'Product Lab', status: 'dev', note: 'Crea productos gratis o desde US$5 y envíalos a revisión' },
   { name: 'LOMBANA NEWS', status: 'dev', note: 'Periódico de tecnología con aportes moderados' },
+  { name: 'Moderación', status: 'ready', note: 'Revisión humana antes de publicar aportes y productos' },
   { name: 'Descargas y leads', status: 'planned', note: 'Productos gratuitos con captura de correo' },
 ];
 
