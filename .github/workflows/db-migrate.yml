@@ -28,13 +28,26 @@ jobs:
       APP_ENV: production
     steps:
       - name: Verificar secretos
+        # Solo informa presencia y longitud; nunca imprime valores.
         run: |
           missing=0
-          [ -n "$DATABASE_ADMIN_URL" ] || { echo "Falta el secreto DATABASE_ADMIN_URL"; missing=1; }
-          [ -n "$LOMBANA_APP_DB_PASSWORD" ] || { echo "Falta el secreto LOMBANA_APP_DB_PASSWORD"; missing=1; }
-          if [ -n "$LOMBANA_APP_DB_PASSWORD" ] && [ ${#LOMBANA_APP_DB_PASSWORD} -lt 20 ]; then
-            echo "LOMBANA_APP_DB_PASSWORD debe tener al menos 20 caracteres"; missing=1
+          if [ -z "$DATABASE_ADMIN_URL" ]; then
+            echo "::error title=Secreto faltante::DATABASE_ADMIN_URL no existe o está vacío"; missing=1
+          else
+            case "$DATABASE_ADMIN_URL" in
+              postgres://*|postgresql://*) ;;
+              *) echo "::error title=Formato::DATABASE_ADMIN_URL debe empezar por postgresql://"; missing=1 ;;
+            esac
+            case "$DATABASE_ADMIN_URL" in
+              *YOUR-PASSWORD*) echo "::error title=Formato::DATABASE_ADMIN_URL aún contiene [YOUR-PASSWORD]"; missing=1 ;;
+            esac
           fi
+          if [ -z "$LOMBANA_APP_DB_PASSWORD" ]; then
+            echo "::error title=Secreto faltante::LOMBANA_APP_DB_PASSWORD no existe o está vacío"; missing=1
+          elif [ ${#LOMBANA_APP_DB_PASSWORD} -lt 20 ]; then
+            echo "::error title=Contraseña corta::LOMBANA_APP_DB_PASSWORD tiene ${#LOMBANA_APP_DB_PASSWORD} caracteres; mínimo 20"; missing=1
+          fi
+          [ $missing -eq 0 ] && echo "::notice title=Secretos::Secretos presentes y con formato válido"
           exit $missing
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
