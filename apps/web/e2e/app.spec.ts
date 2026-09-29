@@ -245,12 +245,72 @@ test.describe.serial('flujo principal V1', () => {
     );
     await page.reload();
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'example.com' })).toBeVisible();
+    await expect(
+      page.getByRole('listitem').filter({ hasText: title }).getByRole('link', { name: 'example.com' }),
+    ).toBeVisible();
 
     // Ya publicado, su autor no puede editarlo ni retirarlo desde la app.
     await page.goto('/app/noticias');
     await expect(page.getByTestId('contribution-status').first()).toHaveText('Publicado');
     await expect(page.getByRole('button', { name: 'Retirar' })).toHaveCount(0);
+  });
+
+  test('Moderación: solo moderadores, con nota obligatoria y sin publicar productos sin archivo', async ({ page, browser }) => {
+    // Ana (sin rol de plataforma) no ve la moderación.
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.getByRole('link', { name: /Moderación/ })).toHaveCount(0);
+    const res = await page.goto('/app/moderacion');
+    expect(res?.status()).toBe(404);
+
+    // Ana envía un aporte y un producto a revisión.
+    await page.goto('/app/noticias');
+    const title = `Chips para IA en 2026 ${stamp}`;
+    await page.getByLabel('Título').fill(title);
+    await page.getByLabel('Tu aporte').fill('Los fabricantes compiten por chips especializados en inferencia, más baratos y eficientes que las GPU generales.');
+    await page.getByRole('button', { name: 'Enviar a moderación' }).first().click();
+    await expect(page.getByRole('status')).toHaveText('Aporte guardado.');
+    await page.goto('/app/productos/nuevo');
+    await page.getByLabel('Título').fill(`Checklist de lanzamiento ${stamp}`);
+    await page.getByRole('button', { name: 'Crear producto' }).click();
+    await expect(page).toHaveURL(/\/app\/productos\/[0-9a-f-]{36}$/);
+    const productUrl = page.url();
+    await page.getByRole('button', { name: 'Enviar a revisión' }).click();
+    await expect(page.getByTestId('product-status')).toHaveText('En revisión');
+
+    // Un moderador de plataforma revisa.
+    const modPage = await browser.newPage();
+    const modEmail = `mod-${stamp}@example.com`;
+    await signUp(modPage, 'Mónica Moderadora', modEmail);
+    await adminQuery(
+      `insert into public.platform_role_assignments (user_id, role_code)
+       select id, 'ADMIN' from public.users where email_normalized = $1`,
+      [modEmail],
+    );
+    await modPage.goto('/app/moderacion');
+    await expect(modPage.getByRole('heading', { name: 'Moderación', level: 1 })).toBeVisible();
+    const contribution = modPage.getByRole('listitem').filter({ hasText: title });
+    await contribution.getByRole('button', { name: 'Rechazar' }).click();
+    await expect(contribution.locator('p[role="alert"]')).toHaveText('Rechazar exige una nota para el autor');
+    await contribution.getByRole('button', { name: 'Aprobar y publicar' }).click();
+    await expect(contribution.getByRole('status')).toHaveText('Aporte publicado.');
+
+    const product = modPage.getByRole('listitem').filter({ hasText: `Checklist de lanzamiento ${stamp}` });
+    await product.getByRole('button', { name: 'Publicar' }).click();
+    await expect(product.locator('p[role="alert"]')).toHaveText(
+      'El producto no tiene un archivo entregable escaneado como limpio',
+    );
+    await product.getByLabel(/Nota para el autor/).fill('Falta subir el archivo del checklist');
+    await product.getByRole('button', { name: 'Devolver a borrador' }).click();
+    await expect(product.getByRole('status')).toHaveText('Producto devuelto a borrador con nota.');
+    await modPage.close();
+
+    // El aporte aparece en el periódico y Ana ve la nota del producto.
+    await page.goto('/noticias');
+    await expect(page.getByRole('heading', { name: title })).toBeVisible();
+    await page.goto(productUrl);
+    await expect(page.getByTestId('product-status')).toHaveText('Borrador');
+    await expect(page.getByTestId('review-note')).toHaveText('Revisión: Falta subir el archivo del checklist');
   });
 
   test('una cuenta suspendida no entra y ve un aviso claro, sin bucles', async ({ page, browser }) => {

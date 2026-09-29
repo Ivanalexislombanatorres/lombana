@@ -38,6 +38,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <NavLink href="/app/herramientas">
             <span aria-hidden>✦</span> Herramientas
           </NavLink>
+          {account.isModerator && (
+            <NavLink href="/app/moderacion">
+              <span aria-hidden>⚑</span> Moderación
+            </NavLink>
+          )}
           <NavLink href="/app/cuenta">
             <span aria-hidden>◉</span> Mi Lombana
           </NavLink>

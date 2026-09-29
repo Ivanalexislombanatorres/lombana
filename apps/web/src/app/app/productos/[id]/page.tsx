@@ -53,10 +53,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               coalesce((select (value #>> '{}')::boolean from public.settings where key = 'payments.enabled'), false) as payments`,
       [p.rows[0].category],
     );
-    return { product: p.rows[0], min: s.rows[0]?.min ?? null, payments: s.rows[0]?.payments ?? false };
+    const n = await tx.query<{ n: string | null }>('select app.product_review_note($1) as n', [id]);
+    return {
+      product: p.rows[0],
+      min: s.rows[0]?.min ?? null,
+      payments: s.rows[0]?.payments ?? false,
+      reviewNote: n.rows[0]?.n ?? null,
+    };
   });
   if (!data) notFound();
-  const { product, min, payments } = data;
+  const { product, min, payments, reviewNote } = data;
   const paid = Number(product.amount_minor ?? 0) > 0;
   const isDraft = product.status === 'draft';
 
@@ -80,10 +86,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </span>
       </div>
 
+      {isDraft && reviewNote && (
+        <p className="notice notice-warn" data-testid="review-note">
+          Revisión: {reviewNote}
+        </p>
+      )}
       {product.status === 'in_review' && (
         <p className="notice notice-info">
-          Enviado a revisión. La aprobación la hace administración de LOMBANA; el panel de revisión está en
-          construcción, así que por ahora ningún producto se publica automáticamente.
+          Enviado a revisión. Administración de LOMBANA lo revisa; para publicarse necesita al menos un archivo
+          entregable, y ningún producto se publica automáticamente.
         </p>
       )}
       {paid && !payments && (
