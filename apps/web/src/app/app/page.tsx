@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { INTENTS, PROJECT_STATUS_LABEL, type IntentKey } from '@/components/ui';
+import { geminiConfigured } from '@/server/ai/gemini';
 import { inOrg } from '@/server/session';
 import { AskBox } from './ask-box';
 import styles from './dashboard.module.css';
@@ -51,12 +52,19 @@ export default async function Dashboard({
         <p className="eyebrow">{firstName ? `Hola, ${firstName}` : 'Bienvenido'}</p>
         <h1 className="h1">¿Qué necesitas lograr hoy?</h1>
         <AskBox initialObjective={initialObjective} initialIntent={initialIntent} />
-        <p className="dim" style={{ margin: 0, fontSize: 13.5 }}>
-          Por ahora, tu objetivo se guarda como proyecto y tú defines los pasos.{' '}
-          <span className="badge badge-ai" style={{ marginLeft: 4 }}>
-            Pronto: CLAU propone el plan
-          </span>
-        </p>
+        {geminiConfigured() ? (
+          <p className="dim" style={{ margin: 0, fontSize: 13.5 }}>
+            Tu objetivo se guarda como proyecto. Dentro, pide a <span className="badge badge-ai">CLAU AI</span> que te
+            proponga el plan.
+          </p>
+        ) : (
+          <p className="dim" style={{ margin: 0, fontSize: 13.5 }}>
+            Por ahora, tu objetivo se guarda como proyecto y tú defines los pasos.{' '}
+            <span className="badge badge-ai" style={{ marginLeft: 4 }}>
+              Pronto: CLAU propone el plan
+            </span>
+          </p>
+        )}
       </section>
 
       <section className={styles.grid}>

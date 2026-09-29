@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Brand } from '@/components/ui';
 import { signOut } from '@/server/actions/auth';
 import { switchOrg } from '@/server/actions/projects';
+import { geminiConfigured } from '@/server/ai/gemini';
 import { requireAccount } from '@/server/session';
 import { NavLink } from './nav-link';
 import styles from './shell.module.css';
@@ -48,7 +49,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </NavLink>
         </nav>
         <div className={styles.sideFoot}>
-          <span className="badge badge-ai">CLAU AI · en desarrollo</span>
+          <span className="badge badge-ai">{geminiConfigured() ? 'CLAU AI · activo' : 'CLAU AI · en desarrollo'}</span>
         </div>
       </aside>
 

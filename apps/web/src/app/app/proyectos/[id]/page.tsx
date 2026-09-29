@@ -6,6 +6,10 @@ import { PROJECT_STATUS_LABEL } from '@/components/ui';
 import { setProjectStatus, toggleTask } from '@/server/actions/projects';
 import { inOrg } from '@/server/session';
 import { AddTaskForm } from './add-task-form';
+import { ClauRequest } from './clau-panel';
+import { applyClauPlan } from '@/server/actions/clau';
+import { geminiConfigured } from '@/server/ai/gemini';
+import type { ClauPlan } from '@/lib/clau/plan';
 import styles from '../projects.module.css';
 
 export const metadata: Metadata = { title: 'Proyecto' };
@@ -16,6 +20,13 @@ const EVENT_LABEL: Record<string, string> = {
   'task.created': 'Paso agregado',
   'task.done': 'Paso completado',
   'task.reopened': 'Paso reabierto',
+  'clau.plan_proposed': 'CLAU propuso un plan',
+  'clau.plan_applied': 'Plan de CLAU agregado',
+};
+
+const ENGINE_LABEL: Record<string, string> = {
+  ai: 'IA', search: 'Búsqueda', data: 'Datos', product: 'Producto', tools: 'Herramientas', download: 'Descargas',
+  payment: 'Pagos', automation: 'Automatización', integration: 'Integración', analytics: 'Analítica',
 };
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,10 +51,27 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       'select kind, payload, created_at from public.project_events where project_id = $1 order by created_at desc limit 12',
       [id],
     );
-    return { project: p.rows[0], progress: progress.rows[0]!, tasks: tasks.rows, events: events.rows };
+    const proposal = await tx.query<{ id: string; payload: { plan: ClauPlan; modelo?: string }; applied: boolean }>(
+      `select e.id, e.payload,
+              exists (select 1 from public.project_events a
+                       where a.project_id = e.project_id and a.kind = 'clau.plan_applied'
+                         and a.payload->>'propuesta' = e.id::text) as applied
+         from public.project_events e
+        where e.project_id = $1 and e.kind = 'clau.plan_proposed'
+        order by e.created_at desc limit 1`,
+      [id],
+    );
+    return {
+      project: p.rows[0],
+      progress: progress.rows[0]!,
+      tasks: tasks.rows,
+      events: events.rows,
+      proposal: proposal.rows[0] ?? null,
+    };
   });
   if (!data) notFound();
-  const { project, progress, tasks, events } = data;
+  const { project, progress, tasks, events, proposal } = data;
+  const clauReady = geminiConfigured();
 
   return (
     <div className="stack" style={{ gap: 24 }}>
@@ -79,6 +107,70 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </p>
         )}
       </div>
+
+      <section className="panel pad stack" style={{ gap: 12 }} aria-labelledby="clau">
+        <div className="row between wrap">
+          <h2 id="clau" className="h3">
+            <span className="badge badge-ai">CLAU AI</span> Plan sugerido
+          </h2>
+        </div>
+        {!clauReady ? (
+          <p className="muted" style={{ margin: 0 }}>
+            CLAU se activa cuando se configure la clave de IA de la plataforma. Mientras tanto, define tus pasos abajo.
+          </p>
+        ) : (
+          <ClauRequest projectId={project.id} hasProposal={Boolean(proposal)} />
+        )}
+        {proposal && (
+          <div className="stack" style={{ gap: 10 }} data-testid="clau-proposal">
+            <p style={{ margin: 0 }}>{proposal.payload.plan.resumen}</p>
+            {proposal.payload.plan.publico && (
+              <p className="dim" style={{ margin: 0, fontSize: 13.5 }}>
+                Público: {proposal.payload.plan.publico}
+              </p>
+            )}
+            <ol className="stack" style={{ margin: 0, paddingLeft: 20, gap: 6 }}>
+              {proposal.payload.plan.pasos.map((p, i) => (
+                <li key={i}>
+                  <strong>{p.titulo}</strong>{' '}
+                  <span className="badge" style={{ fontSize: 11 }}>
+                    {ENGINE_LABEL[p.motor] ?? p.motor}
+                  </span>
+                  {p.descripcion && (
+                    <div className="dim" style={{ fontSize: 13.5 }}>
+                      {p.descripcion}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ol>
+            {proposal.payload.plan.riesgos.length > 0 && (
+              <div className="notice notice-warn">
+                <strong>Supuestos por validar:</strong>
+                <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                  {proposal.payload.plan.riesgos.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="dim" style={{ margin: 0, fontSize: 12.5 }}>
+              Generado por IA{proposal.payload.modelo ? ` (${proposal.payload.modelo})` : ''}. Revísalo antes de usarlo.
+            </p>
+            {proposal.applied ? (
+              <span className="badge badge-ready">Pasos agregados al proyecto</span>
+            ) : (
+              <form action={applyClauPlan}>
+                <input type="hidden" name="projectId" value={project.id} />
+                <input type="hidden" name="proposalId" value={proposal.id} />
+                <button className="btn btn-sm" type="submit">
+                  Agregar estos {proposal.payload.plan.pasos.length} pasos al proyecto
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+      </section>
 
       <div className={styles.layout}>
         <section className="panel pad stack">

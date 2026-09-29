@@ -153,6 +153,45 @@ test.describe.serial('flujo principal V1', () => {
     expect(await page.evaluate(() => document.cookie)).not.toContain('sb-');
   });
 
+  test('CLAU propone un plan, se agrega una sola vez y los errores de la IA se muestran claros', async ({ page }) => {
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.getByText('CLAU AI · activo')).toBeVisible();
+    await page.getByLabel('Describe tu problema, idea u objetivo').fill('Crear un sistema de domicilios para restaurantes');
+    await page.getByRole('button', { name: 'Crear proyecto' }).click();
+    await expect(page).toHaveURL(/\/app\/proyectos\/[0-9a-f-]{36}$/);
+
+    await page.getByRole('button', { name: 'Pedir plan a CLAU' }).click();
+    const proposal = page.getByTestId('clau-proposal');
+    await expect(proposal).toContainText('Lanzar el servicio en una zona piloto');
+    await expect(proposal).toContainText('Verificar requisitos legales para domicilios');
+    await expect(proposal).toContainText('La disposición a pagar no está validada');
+    await expect(proposal).toContainText('Generado por IA (modelo-e2e)');
+
+    await proposal.getByRole('button', { name: 'Agregar estos 3 pasos al proyecto' }).click();
+    await expect(proposal.getByText('Pasos agregados al proyecto')).toBeVisible();
+    await expect(page.getByText('0% · 0/3')).toBeVisible();
+    await expect(page.getByText('Entrevistar a 10 restaurantes de la zona', { exact: true }).last()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Agregar estos/ })).toHaveCount(0);
+
+    // El consumo de IA queda registrado.
+    const usage = await adminQuery(
+      `select u.status, u.model_key, u.input_tokens from public.ai_usage u join public.users us on us.id = u.user_id
+        where us.email_normalized = $1 and u.task = 'clau.plan' order by u.created_at desc limit 1`,
+      [email],
+    );
+    expect(usage.rows[0]).toEqual({ status: 'success', model_key: 'modelo-e2e', input_tokens: 120 });
+
+    // Límite de uso del proveedor: mensaje claro, sin plan inventado.
+    await page.goto('/app');
+    await page.getByLabel('Describe tu problema, idea u objetivo').fill('Probar LIMITE de la IA con este objetivo');
+    await page.getByRole('button', { name: 'Crear proyecto' }).click();
+    await expect(page).toHaveURL(/\/app\/proyectos\/[0-9a-f-]{36}$/);
+    await page.getByRole('button', { name: 'Pedir plan a CLAU' }).click();
+    await expect(page.locator('p[role="alert"]')).toHaveText('Se alcanzó el límite de uso de la IA. Intenta más tarde.');
+    await expect(page.getByTestId('clau-proposal')).toHaveCount(0);
+  });
+
   test('Product Lab: producto gratis, enviar a revisión y volver a borrador', async ({ page }) => {
     await logIn(page, email);
     await expect(page).toHaveURL(/\/app$/);

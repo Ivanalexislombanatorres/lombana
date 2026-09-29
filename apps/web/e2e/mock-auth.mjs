@@ -102,6 +102,27 @@ createServer(async (req, res) => {
       return u ? send(res, 200, publicUser(u)) : send(res, 401, { msg: 'invalid token' });
     }
     if (path === '/auth/v1/logout') return send(res, 204);
+    // Simulador de Google Gemini (generateContent) para las pruebas de CLAU.
+    if (req.method === 'POST' && /^\/v1beta\/models\/[^/]+:generateContent$/.test(path)) {
+      if (req.headers['x-goog-api-key'] !== 'gemini-e2e') return send(res, 403, { error: { message: 'bad key' } });
+      const b = await body(req);
+      const prompt = b.contents?.[0]?.parts?.[0]?.text ?? '';
+      if (prompt.includes('LIMITE')) return send(res, 429, { error: { message: 'quota' } });
+      const plan = {
+        resumen: 'Lanzar el servicio en una zona piloto y validar la demanda antes de crecer.',
+        publico: 'Restaurantes pequeños del barrio',
+        pasos: [
+          { titulo: 'Entrevistar a 10 restaurantes de la zona', descripcion: 'Validar si pagarían por el servicio', motor: 'search' },
+          { titulo: 'Definir la zona piloto y las tarifas', descripcion: 'Con base en las entrevistas', motor: 'data' },
+          { titulo: 'Verificar requisitos legales para domicilios', descripcion: 'Consultar la normativa local', motor: 'tools' },
+        ],
+        riesgos: ['La disposición a pagar no está validada'],
+      };
+      return send(res, 200, {
+        candidates: [{ content: { parts: [{ text: JSON.stringify(plan) }] } }],
+        usageMetadata: { promptTokenCount: 120, candidatesTokenCount: 180 },
+      });
+    }
     return send(res, 404, { msg: `mock: ruta no implementada ${req.method} ${path}` });
   } catch (err) {
     return send(res, 500, { msg: String(err) });
