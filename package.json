@@ -19,7 +19,8 @@
     "build": "npm run build --workspace @lombana/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "ci": "npm run typecheck && npm test && npm run build"
+    "ci": "npm run typecheck && npm test && npm run build",
+    "db:bundle": "npm run -s bundle --workspace @lombana/db"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

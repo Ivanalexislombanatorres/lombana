@@ -28,6 +28,8 @@ Genera una contraseña larga (40 caracteres o más, solo letras y números para 
 
 `Actions → Migrar base de datos → Run workflow`, escribir `MIGRAR`. Debe terminar con `✓` en las 11 migraciones.
 
+**Alternativa sin secretos de GitHub:** `npm run db:bundle > lombana.sql` genera un único archivo con todas las migraciones (una transacción, registra los checksums en `schema_migrations`, se niega a correr dos veces). Se pega en `Supabase → SQL Editor → Run`. Luego, en el mismo editor, se asigna la clave del rol de la app: `alter role lombana_app with login password '<clave>';`. Las siguientes migraciones pueden ir por el workflow o por un nuevo bundle.
+
 ### 4. Variables en Vercel
 
 `Project → Settings → Environment Variables` (entorno *Production*):

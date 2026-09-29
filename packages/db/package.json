@@ -14,7 +14,8 @@
     "reset": "tsx src/cli.ts reset",
     "status": "tsx src/cli.ts status",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bundle": "tsx src/bundle.ts"
   },
   "dependencies": {
     "pg": "^8.23.0"
