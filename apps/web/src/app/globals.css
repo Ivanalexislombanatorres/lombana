@@ -148,3 +148,4 @@ button, input, textarea, select { font: inherit; color: inherit; }
   font-size: 13px; letter-spacing: 0; color: #fff;
 }
 .brand-ai { color: var(--gold); }
+.grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }

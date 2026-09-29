@@ -153,6 +153,61 @@ test.describe.serial('flujo principal V1', () => {
     expect(await page.evaluate(() => document.cookie)).not.toContain('sb-');
   });
 
+  test('Product Lab: producto gratis, enviar a revisión y volver a borrador', async ({ page }) => {
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await page.getByRole('link', { name: /Productos/ }).first().click();
+    await expect(page.getByText('Aún no tienes productos')).toBeVisible();
+    await page.getByRole('link', { name: 'Nuevo producto' }).click();
+    await page.getByLabel('Título').fill('Guía de costos para restaurantes');
+    await page.getByLabel('Descripción').fill('Plantilla y pasos para calcular el costo de cada plato.');
+    await page.getByRole('button', { name: 'Crear producto' }).click();
+    await expect(page).toHaveURL(/\/app\/productos\/[0-9a-f-]{36}$/);
+    await expect(page.getByTestId('product-status')).toHaveText('Borrador');
+    await expect(page.getByText(/Gratis$/).first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Enviar a revisión' }).click();
+    await expect(page.getByTestId('product-status')).toHaveText('En revisión');
+    await expect(page.getByText(/ningún producto se publica automáticamente/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guardar cambios' })).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Volver a borrador' }).click();
+    await expect(page.getByTestId('product-status')).toHaveText('Borrador');
+  });
+
+  test('Product Lab: el precio de pago respeta el mínimo de US$5', async ({ page }) => {
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await page.goto('/app/productos/nuevo');
+    await page.getByLabel('Título').fill('Pack de plantillas premium');
+    await page.getByLabel('De pago').check();
+    await page.getByLabel(/Precio en dólares/).fill('3');
+    await page.getByRole('button', { name: 'Crear producto' }).click();
+    await expect(page.locator('p[role="alert"]')).toHaveText('El precio mínimo es US$5.00.');
+    // Lo escrito no se pierde tras el error.
+    await expect(page.getByLabel('Título')).toHaveValue('Pack de plantillas premium');
+    await expect(page.getByLabel(/Precio en dólares/)).toHaveValue('3');
+
+    await page.getByLabel(/Precio en dólares/).fill('5,50');
+    await page.getByRole('button', { name: 'Crear producto' }).click();
+    await expect(page).toHaveURL(/\/app\/productos\/[0-9a-f-]{36}$/);
+    await expect(page.getByText(/US\$5\.50/).first()).toBeVisible();
+    await expect(page.getByText(/Los pagos aún no están habilitados/)).toBeVisible();
+
+    // Editar en borrador: bajar el precio por debajo del mínimo tampoco se permite.
+    await page.getByLabel(/Precio en dólares/).fill('4.99');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(page.locator('p[role="alert"]')).toHaveText('El precio mínimo es US$5.00.');
+    await page.getByLabel(/Precio en dólares/).fill('9');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(page.getByRole('status')).toHaveText('Cambios guardados.');
+    await expect(page.getByText(/US\$9\.00/).first()).toBeVisible();
+
+    await page.goto('/app/productos');
+    await expect(page.getByText('Pack de plantillas premium')).toBeVisible();
+    await expect(page.getByText('Guía de costos para restaurantes')).toBeVisible();
+  });
+
   test('una cuenta suspendida no entra y ve un aviso claro, sin bucles', async ({ page, browser }) => {
     const suspended = `susp-${stamp}@example.com`;
     await signUp(page, 'Cuenta Suspendida', suspended);
@@ -211,7 +266,7 @@ test('ninguna página se desborda horizontalmente en móvil', async ({ page }) =
   await page.getByRole('button', { name: 'Crear proyecto' }).click();
   await expect(page).toHaveURL(/\/app\/proyectos\//);
   expect(await overflow(), 'detalle de proyecto').toBeLessThanOrEqual(0);
-  for (const path of ['/app', '/app/proyectos', '/app/herramientas', '/app/cuenta']) {
+  for (const path of ['/app', '/app/proyectos', '/app/productos', '/app/productos/nuevo', '/app/herramientas', '/app/cuenta']) {
     await page.goto(path);
     expect(await overflow(), path).toBeLessThanOrEqual(0);
   }

@@ -29,6 +29,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <NavLink href="/app/proyectos">
             <span aria-hidden>▦</span> Proyectos
           </NavLink>
+          <NavLink href="/app/productos">
+            <span aria-hidden>◈</span> Productos
+          </NavLink>
           <NavLink href="/app/herramientas">
             <span aria-hidden>✦</span> Herramientas
           </NavLink>

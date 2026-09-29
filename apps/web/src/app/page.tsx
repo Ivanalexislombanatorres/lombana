@@ -8,7 +8,7 @@ const ROADMAP: { name: string; status: 'ready' | 'dev' | 'planned'; note: string
   { name: 'Mis Proyectos', status: 'ready', note: 'Objetivo, pasos, estado y progreso real' },
   { name: 'CLAU AI', status: 'dev', note: 'Interpreta tu objetivo y propone el plan' },
   { name: 'Herramientas', status: 'dev', note: 'Ebooks, plantillas Excel, análisis de documentos' },
-  { name: 'Product Lab', status: 'planned', note: 'De la idea al producto publicado' },
+  { name: 'Product Lab', status: 'dev', note: 'Crea productos gratis o desde US$5 y envíalos a revisión' },
   { name: 'Descargas y leads', status: 'planned', note: 'Productos gratuitos con captura de correo' },
 ];
 
