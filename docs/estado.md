@@ -11,13 +11,13 @@ Actualizado: 2026-09-29
 | TESTED | 99 pruebas de base de datos, 18 unitarias y 13 e2e con navegador real contra un simulador de Supabase Auth (registro, proyectos, aislamiento entre cuentas, seguridad del login, desborde en móvil). Todas corren en la CI de GitHub. |
 | SECURITY REVIEW | Revisión independiente del login: 2 hallazgos confirmados (redirección abierta con caracteres de control; cuentas dadas de baja que volvían a entrar) y 5 de endurecimiento (cookies accesibles desde JavaScript, enlace de correo con la cabecera Host, flujo `token_hash`, bucle de cuentas suspendidas, alta simultánea). Todos corregidos con prueba de regresión. |
 | PENDING | Pasos 4 a 14 de V1 (CLAU, AI Router, búsqueda, herramientas, Product Lab, descargas y leads, noticias, YouTube, admin). Recuperar contraseña (necesita proveedor de email). |
-| BLOCKED | Activación en producción: secretos de GitHub para migrar Supabase (el workflow los reporta ausentes) y clave Publishable en Vercel. YouTube, ingesta de noticias, ebook por tendencias, lanzamiento de descargas/leads, pagos: igual que antes. |
+| BLOCKED | Activación en producción: clave del rol `lombana_app` y variables de Vercel (las pone el propietario). YouTube, ingesta de noticias, ebook por tendencias, lanzamiento de descargas/leads, pagos: igual que antes. |
 | RISKS | El correo de fábrica de Supabase tiene un límite bajo de envíos por hora: no sirve para el lanzamiento. Leads y costos de IA, como antes. |
-| DEPLOY | Web en https://lombana.vercel.app. Supabase: ver [despliegue.md](despliegue.md) (secretos → migrar → variables de Vercel → URLs de Auth). |
+| DEPLOY | Web en https://lombana.vercel.app. Supabase `fazdgwkofhluapbmrjor` (PostgreSQL 17) **migrado 2026-09-29**: 11 migraciones aplicadas con el conector de Supabase, esquema verificado idéntico al probado (columnas, políticas, funciones, restricciones, triggers, permisos, datos iniciales, checksums). anon/authenticated/service_role sin privilegios. Falta: clave de `lombana_app`, variables de Vercel y URLs de Auth ([despliegue.md](despliegue.md)). |
 | DECISIONS | Supabase Auth como proveedor de login (el propietario creó el proyecto). Sin vinculación automática de cuentas con el mismo correo. Callback solo PKCE. ADR 0001–0003. |
 | COST | Cero: Vercel Hobby y Supabase gratuito. |
-| TECH DEBT | Certificado de Supabase sin verificar mientras no se cargue `DATABASE_CA_CERT`; sin linter; sin recuperación de contraseña; límites de intentos de login delegados a Supabase. |
-| NEXT STEP | Cargar los secretos de GitHub y migrar; configurar Vercel y Auth; luego paso 4 — CLAU + Intent Engine (necesita proveedor de IA). |
+| TECH DEBT | Extensión `vector` quedó en el esquema public (aviso WARN de Supabase; sin exposición porque la Data API está cerrada y los roles de Supabase no tienen privilegios): moverla a `extensions` en una migración futura. Certificado de Supabase sin verificar mientras no se cargue `DATABASE_CA_CERT`; sin linter; sin recuperación de contraseña; límites de intentos de login delegados a Supabase. |
+| NEXT STEP | Clave de `lombana_app`, variables de Vercel y URLs de Auth; luego paso 4 — CLAU + Intent Engine (necesita proveedor de IA). |
 
 ## Módulos
 
