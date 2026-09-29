@@ -1,5 +1,9 @@
 import type { NextConfig } from 'next';
 
+// Variables de entorno en producción (Vercel): DATABASE_URL, APP_ENV,
+// NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY y SITE_URL.
+// Las NEXT_PUBLIC_* se incrustan al compilar: cambiarlas exige un nuevo build.
+
 const config: NextConfig = {
   // El paquete de base de datos es TypeScript del monorepo: Next lo compila.
   transpilePackages: ['@lombana/db'],
