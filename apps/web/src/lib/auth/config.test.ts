@@ -38,3 +38,41 @@ describe('safeNext: destinos tras iniciar sesión', () => {
     }
   });
 });
+
+describe('configuración pública de producción', () => {
+  const keys = ['VERCEL', 'VERCEL_ENV', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'SITE_URL'];
+  const saved: Record<string, string | undefined> = {};
+  const reset = () => keys.forEach((k) => (saved[k] === undefined ? delete process.env[k] : (process.env[k] = saved[k])));
+  keys.forEach((k) => (saved[k] = process.env[k]));
+
+  it('fuera de Vercel no inventa configuración', async () => {
+    keys.forEach((k) => delete process.env[k]);
+    const { authConfig, siteUrl } = await import('./config');
+    expect(authConfig()).toBeNull();
+    expect(siteUrl()).toBeNull();
+    reset();
+  });
+
+  it('en producción de Vercel usa los valores públicos si faltan las variables', async () => {
+    keys.forEach((k) => delete process.env[k]);
+    process.env.VERCEL = '1';
+    process.env.VERCEL_ENV = 'production';
+    const { authConfig, siteUrl } = await import('./config');
+    expect(authConfig()?.url).toBe('https://fazdgwkofhluapbmrjor.supabase.co');
+    expect(authConfig()?.publishableKey).toMatch(/^sb_publishable_/);
+    expect(siteUrl()).toBe('https://lombana.vercel.app');
+    // Una variable definida siempre gana.
+    process.env.SITE_URL = 'https://otro.example.com';
+    expect(siteUrl()).toBe('https://otro.example.com');
+    reset();
+  });
+
+  it('en vistas previas de Vercel tampoco inventa configuración', async () => {
+    keys.forEach((k) => delete process.env[k]);
+    process.env.VERCEL = '1';
+    process.env.VERCEL_ENV = 'preview';
+    const { authConfig } = await import('./config');
+    expect(authConfig()).toBeNull();
+    reset();
+  });
+});

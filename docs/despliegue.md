@@ -32,6 +32,8 @@ Genera una contraseña larga (40 caracteres o más, solo letras y números para 
 
 ### 4. Variables en Vercel
 
+**Desde 2026-09-29 solo `DATABASE_URL` es obligatoria.** La URL de Supabase, la clave *publishable* y `SITE_URL` son públicas y están fijadas en `apps/web/src/lib/public-config.ts` para producción en Vercel (una variable definida en Vercel siempre tiene prioridad). La tabla siguiente queda como referencia.
+
 `Project → Settings → Environment Variables` (entorno *Production*):
 
 | Nombre | Valor |

@@ -1,3 +1,5 @@
+import { PRODUCTION_PUBLIC_CONFIG, publicValue } from '../public-config';
+
 // Configuración pública del proveedor de identidad (Supabase Auth).
 // Ambos valores son públicos por diseño: la clave publicable solo permite iniciar
 // sesión; LOMBANA no expone la Data API de Supabase.
@@ -7,8 +9,11 @@ export interface AuthConfig {
 }
 
 export function authConfig(): AuthConfig | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  const url = publicValue(process.env.NEXT_PUBLIC_SUPABASE_URL, PRODUCTION_PUBLIC_CONFIG.supabaseUrl);
+  const publishableKey = publicValue(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    PRODUCTION_PUBLIC_CONFIG.supabasePublishableKey,
+  );
   if (!url || !publishableKey) return null;
   return { url, publishableKey };
 }
@@ -19,7 +24,7 @@ export function authConfig(): AuthConfig | null {
  * y hacer que el enlace del correo apunte a su dominio.
  */
 export function siteUrl(): string | null {
-  const raw = process.env.SITE_URL?.trim();
+  const raw = publicValue(process.env.SITE_URL, PRODUCTION_PUBLIC_CONFIG.siteUrl);
   if (!raw) return null;
   try {
     const u = new URL(raw);
