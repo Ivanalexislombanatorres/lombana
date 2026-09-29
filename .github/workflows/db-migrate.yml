@@ -1,0 +1,50 @@
+name: Migrar base de datos
+
+# Aplica las migraciones pendientes a la base de producción (Supabase).
+# Se ejecuta SOLO a mano: GitHub → Actions → "Migrar base de datos" → Run workflow.
+# Las credenciales viven en los secretos del repositorio; nunca en el código ni en el chat.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escribe MIGRAR para confirmar'
+        required: true
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: ${{ github.event.inputs.confirm == 'MIGRAR' }}
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_ADMIN_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+      LOMBANA_APP_DB_PASSWORD: ${{ secrets.LOMBANA_APP_DB_PASSWORD }}
+      DATABASE_CA_CERT: ${{ secrets.DATABASE_CA_CERT }}
+      APP_ENV: production
+    steps:
+      - name: Verificar secretos
+        run: |
+          missing=0
+          [ -n "$DATABASE_ADMIN_URL" ] || { echo "Falta el secreto DATABASE_ADMIN_URL"; missing=1; }
+          [ -n "$LOMBANA_APP_DB_PASSWORD" ] || { echo "Falta el secreto LOMBANA_APP_DB_PASSWORD"; missing=1; }
+          if [ -n "$LOMBANA_APP_DB_PASSWORD" ] && [ ${#LOMBANA_APP_DB_PASSWORD} -lt 20 ]; then
+            echo "LOMBANA_APP_DB_PASSWORD debe tener al menos 20 caracteres"; missing=1
+          fi
+          exit $missing
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Estado antes
+        run: npm run db:status
+      - name: Aplicar migraciones
+        run: npm run db:migrate
+      - name: Estado después
+        run: npm run db:status

@@ -3,6 +3,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
+import { pgClientConfig } from './index.js';
 
 const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 const NAME_RE = /^(\d{4})_([a-z0-9_]+)\.(up|down)\.sql$/;
@@ -68,7 +69,7 @@ export interface MigrateOptions {
 /** Aplica todas las migraciones pendientes, cada una en su propia transacción. */
 export async function migrateUp(opts: MigrateOptions): Promise<string[]> {
   const log = opts.log ?? (() => {});
-  const client = new pg.Client({ connectionString: opts.connectionString });
+  const client = new pg.Client(pgClientConfig(opts.connectionString));
   await client.connect();
   try {
     // Evita dos migraciones simultáneas (p. ej. dos despliegues a la vez).
@@ -110,7 +111,7 @@ export async function migrateUp(opts: MigrateOptions): Promise<string[]> {
 /** Revierte las últimas `steps` migraciones (todas si steps = Infinity). */
 export async function migrateDown(opts: MigrateOptions & { steps: number }): Promise<string[]> {
   const log = opts.log ?? (() => {});
-  const client = new pg.Client({ connectionString: opts.connectionString });
+  const client = new pg.Client(pgClientConfig(opts.connectionString));
   await client.connect();
   try {
     await client.query('select pg_advisory_lock(7710001)');
@@ -139,7 +140,7 @@ export async function migrateDown(opts: MigrateOptions & { steps: number }): Pro
 }
 
 export async function migrationStatus(connectionString: string): Promise<{ id: string; applied: boolean }[]> {
-  const client = new pg.Client({ connectionString });
+  const client = new pg.Client(pgClientConfig(connectionString));
   await client.connect();
   try {
     const done = await applied(client);

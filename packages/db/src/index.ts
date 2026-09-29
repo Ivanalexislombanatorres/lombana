@@ -1,5 +1,28 @@
 import pg from 'pg';
 
+/**
+ * Configuración de conexión a partir de una URL de Postgres.
+ *
+ * Hosting administrado (Supabase): la conexión va SIEMPRE cifrada.
+ *   - Con DATABASE_CA_CERT (PEM del certificado raíz del proveedor) se verifica el
+ *     certificado del servidor: es la configuración recomendada para producción.
+ *   - Sin él, se cifra sin verificar la cadena. Protege contra lectura pasiva, no contra
+ *     un intermediario activo. Deuda técnica registrada en docs/estado.md.
+ * Si la URL ya trae `sslmode`, se respeta tal cual.
+ */
+export function pgClientConfig(connectionString: string): pg.ClientConfig {
+  const url = new URL(connectionString);
+  const managed = /\.supabase\.(co|com)$/i.test(url.hostname);
+  if (!managed || url.searchParams.has('sslmode')) {
+    return { connectionString };
+  }
+  const ca = process.env.DATABASE_CA_CERT?.trim();
+  return {
+    connectionString,
+    ssl: ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: false },
+  };
+}
+
 // Entrada de ejecución (web y worker). El migrador vive en '@lombana/db/migrator'
 // para que la aplicación nunca empaquete el acceso a archivos de migración.
 
@@ -12,8 +35,13 @@ export interface TenantContext {
 export type Db = pg.Pool;
 export type Tx = pg.PoolClient;
 
+/**
+ * Pool de conexiones. Compatible con poolers en modo transacción (Supabase :6543):
+ * el contexto se fija con set_config(..., is_local = true), que vive solo dentro
+ * de la transacción, y nunca se usan sentencias preparadas con nombre.
+ */
 export function createPool(connectionString: string, max = 10): Db {
-  return new pg.Pool({ connectionString, max, application_name: 'lombana' });
+  return new pg.Pool({ ...pgClientConfig(connectionString), max, application_name: 'lombana' });
 }
 
 /**

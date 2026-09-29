@@ -1,6 +1,8 @@
 do $$
 begin
   execute format('grant temporary on database %I to public', current_database());
+exception when insufficient_privilege then
+  null;
 end
 $$;
 drop view if exists public.news_published_contributions;

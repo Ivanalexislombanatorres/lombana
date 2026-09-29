@@ -225,10 +225,14 @@ select id, title, body, reference_urls, topics, published_at
 grant select on public.news_published_contributions to lombana_app;
 
 -- Sin tablas ni funciones temporales para la app: cierra la vía de funciones
--- pg_temp usadas como canal lateral contra vistas.
+-- pg_temp usadas como canal lateral contra vistas. Es defensa en profundidad
+-- (la vista ya es security_barrier). En hostings donde el rol de migración no es
+-- dueño de la base (p. ej. Supabase) no se puede revocar: se registra y se sigue.
 do $$
 begin
   execute format('revoke temporary on database %I from public', current_database());
+exception when insufficient_privilege then
+  raise notice 'Sin permiso para revocar TEMPORARY en la base %: se omite (defensa en profundidad)', current_database();
 end
 $$;
 

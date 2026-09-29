@@ -1,12 +1,16 @@
 import 'server-only';
 import { z } from 'zod';
 
+// El rol de la app es lombana_app. En el pooler de Supabase el usuario lleva el
+// identificador del proyecto: lombana_app.<referencia>. Cualquier otro rol se rechaza.
+const APP_ROLE_USER = /^lombana_app(\.[a-z0-9]+)?$/;
+
 // Variables de entorno del servidor, validadas al arrancar. Nada de esto llega al navegador.
 const schema = z.object({
   DATABASE_URL: z
     .string()
     .url()
-    .refine((u) => new URL(u).username === 'lombana_app', {
+    .refine((u) => APP_ROLE_USER.test(decodeURIComponent(new URL(u).username)), {
       message: 'DATABASE_URL debe usar el rol lombana_app (el que respeta RLS)',
     }),
   APP_ENV: z.enum(['development', 'test', 'production']).default('development'),
