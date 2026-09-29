@@ -9,6 +9,7 @@ const ROADMAP: { name: string; status: 'ready' | 'dev' | 'planned'; note: string
   { name: 'CLAU AI', status: 'dev', note: 'Interpreta tu objetivo y propone el plan' },
   { name: 'Herramientas', status: 'dev', note: 'Ebooks, plantillas Excel, análisis de documentos' },
   { name: 'Product Lab', status: 'dev', note: 'Crea productos gratis o desde US$5 y envíalos a revisión' },
+  { name: 'LOMBANA NEWS', status: 'dev', note: 'Periódico de tecnología con aportes moderados' },
   { name: 'Descargas y leads', status: 'planned', note: 'Productos gratuitos con captura de correo' },
 ];
 
@@ -21,6 +22,9 @@ export default function Landing() {
       <header className={`container row between ${styles.nav}`}>
         <Brand />
         <nav className="row">
+          <Link href="/noticias" className="btn btn-ghost btn-sm">
+            Noticias
+          </Link>
           <Link href="/login" className="btn btn-ghost btn-sm">
             Entrar
           </Link>

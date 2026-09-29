@@ -208,6 +208,51 @@ test.describe.serial('flujo principal V1', () => {
     await expect(page.getByText('Guía de costos para restaurantes')).toBeVisible();
   });
 
+  test('LOMBANA NEWS: aporte con moderación y publicación en el periódico', async ({ page }) => {
+    await page.goto('/noticias');
+    await expect(page.getByRole('heading', { name: 'LOMBANA NEWS' })).toBeVisible();
+    await expect(page.getByText('Todavía no hay titulares.')).toBeVisible();
+
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await page.goto('/app/noticias');
+    const title = `La IA en restaurantes ${stamp}`;
+    await page.getByLabel('Título').fill(title);
+    await page.getByLabel('Tu aporte').fill('Corto');
+    await page.getByLabel('Enlaces de referencia (uno por línea, máximo 5)').fill('javascript:alert(1)');
+    await page.getByRole('button', { name: 'Enviar a moderación' }).first().click();
+    // El navegador exige 80 caracteres antes de enviar; con texto suficiente, el servidor valida los enlaces.
+    await page.getByLabel('Tu aporte').fill('Los restaurantes pequeños empiezan a usar modelos de lenguaje para planear compras y reducir desperdicio de alimentos.');
+    await page.getByRole('button', { name: 'Enviar a moderación' }).first().click();
+    await expect(page.locator('p[role="alert"]')).toHaveText('Los enlaces deben empezar por https://');
+    await expect(page.getByLabel('Título')).toHaveValue(title);
+
+    await page.getByLabel('Enlaces de referencia (uno por línea, máximo 5)').fill('https://example.com/estudio');
+    await page.getByRole('button', { name: 'Enviar a moderación' }).first().click();
+    await expect(page.getByRole('status')).toHaveText('Aporte guardado.');
+    await expect(page.getByTestId('contribution-status').first()).toHaveText('En moderación');
+
+    // No aparece en el periódico hasta que moderación lo apruebe.
+    await page.goto('/noticias');
+    await expect(page.getByText(title)).toHaveCount(0);
+
+    // Moderación (fuera de la app, con rol privilegiado) lo aprueba.
+    await adminQuery(
+      `update public.news_contributions c
+          set status = 'approved', moderated_by = c.author_id, moderated_at = now(), published_at = now()
+        where title = $1`,
+      [title],
+    );
+    await page.reload();
+    await expect(page.getByRole('heading', { name: title })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'example.com' })).toBeVisible();
+
+    // Ya publicado, su autor no puede editarlo ni retirarlo desde la app.
+    await page.goto('/app/noticias');
+    await expect(page.getByTestId('contribution-status').first()).toHaveText('Publicado');
+    await expect(page.getByRole('button', { name: 'Retirar' })).toHaveCount(0);
+  });
+
   test('una cuenta suspendida no entra y ve un aviso claro, sin bucles', async ({ page, browser }) => {
     const suspended = `susp-${stamp}@example.com`;
     await signUp(page, 'Cuenta Suspendida', suspended);
@@ -266,7 +311,7 @@ test('ninguna página se desborda horizontalmente en móvil', async ({ page }) =
   await page.getByRole('button', { name: 'Crear proyecto' }).click();
   await expect(page).toHaveURL(/\/app\/proyectos\//);
   expect(await overflow(), 'detalle de proyecto').toBeLessThanOrEqual(0);
-  for (const path of ['/app', '/app/proyectos', '/app/productos', '/app/productos/nuevo', '/app/herramientas', '/app/cuenta']) {
+  for (const path of ['/noticias', '/app', '/app/proyectos', '/app/productos', '/app/productos/nuevo', '/app/noticias', '/app/herramientas', '/app/cuenta']) {
     await page.goto(path);
     expect(await overflow(), path).toBeLessThanOrEqual(0);
   }
