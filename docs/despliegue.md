@@ -26,7 +26,7 @@ Genera una contraseña larga (40 caracteres o más, solo letras y números para 
 
 ### 3. Migrar
 
-`Actions → Migrar base de datos → Run workflow`, escribir `MIGRAR`. Debe terminar con `✓` en las 10 migraciones.
+`Actions → Migrar base de datos → Run workflow`, escribir `MIGRAR`. Debe terminar con `✓` en las 11 migraciones.
 
 ### 4. Variables en Vercel
 
@@ -37,8 +37,22 @@ Genera una contraseña larga (40 caracteres o más, solo letras y números para 
 | `DATABASE_URL` | Cadena del *Transaction pooler* (puerto **6543**) cambiando el usuario `postgres.<ref>` por `lombana_app.<ref>` y la contraseña por la del paso 1 |
 | `DATABASE_CA_CERT` | El mismo certificado del paso 2 |
 | `APP_ENV` | `production` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | La clave **Publishable** (`sb_publishable_…`). Nunca la *Secret* ni la `service_role`. |
+| `SITE_URL` | `https://lombana.vercel.app` (los enlaces de confirmación de los correos se arman con este valor, nunca con la cabecera de la petición) |
 
 Luego `Deployments → ⋯ → Redeploy`. Verificación: `https://lombana.vercel.app/api/v1/health` debe responder `"status":"ok"`.
+
+### 5. URLs de Supabase Auth
+
+`Authentication → URL Configuration`:
+
+- **Site URL:** `https://lombana.vercel.app`
+- **Redirect URLs:** `https://lombana.vercel.app/auth/callback`
+
+La plantilla de correo de confirmación debe quedar la de fábrica (`{{ .ConfirmationURL }}`): el callback solo acepta el flujo PKCE (`code`) y rechaza `token_hash` a propósito. El correo de fábrica de Supabase tiene un límite bajo de envíos por hora: sirve para pruebas, no para el lanzamiento (falta decidir proveedor de email).
+
+La Data API de Supabase debe seguir **desactivada**.
 
 ## Requisitos del rol de migración
 

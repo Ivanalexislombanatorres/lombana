@@ -2,22 +2,22 @@
 
 Actualizado: 2026-09-29
 
-## Control de desarrollo — pasos 1 y 2
+## Control de desarrollo — paso 3 (login y panel)
 
 | Campo | Contenido |
 | --- | --- |
-| STATUS | Paso 1 (arquitectura base) y paso 2 (base de datos) terminados y probados. Nada de V1 está disponible para usuarios aún. |
-| BUILT | Monorepo TypeScript; app web Next.js que compila, con cabeceras de seguridad y `/api/v1/health` real; paquete `@lombana/db` con migrador (up/down, checksums, bloqueo concurrente) y `withTenant`; 10 migraciones (~50 tablas); CI y workflow manual de migración en GitHub Actions. |
-| TESTED | 90 pruebas automáticas en verde, repetibles: reversibilidad total del esquema, aislamiento entre organizaciones, permisos por rol, reglas de negocio, guardas del esquema y regresiones de seguridad. `npm audit`: 0 vulnerabilidades. Build y typecheck en verde. |
-| SECURITY REVIEW | Revisión independiente en 3 rondas contra la base real. Ronda 1: 7 hallazgos (3 altos). Ronda 2: 5 (1 crítico). Ronda 3: 1 alto. Todos corregidos y con prueba de regresión. El hallazgo de la ronda 3 no pasó por una cuarta revisión independiente. |
-| PENDING | Pasos 3 a 14 de V1. |
-| BLOCKED | Publicación en YouTube (credenciales + aprobación Google); ingesta de noticias (términos de uso por fuente); ebook por tendencias (fuente de datos de tendencias); lanzamiento público de descargas y leads (validación legal); pagos (V2). |
-| RISKS | Tratamiento de datos de terceros (leads); costos de IA sin ingresos en V1. |
-| DEPLOY | Web en línea en https://lombana.vercel.app (Vercel, desde GitHub `main`). Supabase creado; migraciones y conexión pendientes: ver [despliegue.md](despliegue.md). |
-| DECISIONS | ADR 0001 (monolito modular), ADR 0002 (RLS), ADR 0003 (YouTube). US$5 interpretado como precio mínimo de productos pagos (configurable). |
-| COST | Cero: no se ha contratado ningún servicio. |
-| TECH DEBT | Conexión a Supabase cifrada pero sin verificar certificado mientras no se cargue `DATABASE_CA_CERT`; vector de búsqueda sin dimensión ni índice hasta elegir proveedor de embeddings; cola de trabajos sin implementar (llega con el worker); sin linter configurado; sin pruebas e2e de la web (llegan con UI). |
-| NEXT STEP | Migrar Supabase y conectar Vercel (despliegue.md); luego paso 3 — Auth. |
+| STATUS | Pasos 1, 2 y 3 terminados y probados. El login y el panel están listos en el código; se activan en https://lombana.vercel.app cuando Supabase quede migrado y las variables de Vercel configuradas. |
+| BUILT | Registro e inicio de sesión (Supabase Auth, verificación de firma del token en cada petición); alta automática de cuenta con espacio personal (migración 0011); panel con "¿Qué necesitas lograr hoy?" que crea proyectos reales; Mis Proyectos (pasos, progreso calculado, estados, historial); catálogo de herramientas desde la base con su estado real (ninguna simula uso); página de cuenta; cambio de espacio; diseño adaptado a móvil. |
+| TESTED | 99 pruebas de base de datos, 18 unitarias y 13 e2e con navegador real contra un simulador de Supabase Auth (registro, proyectos, aislamiento entre cuentas, seguridad del login, desborde en móvil). Todas corren en la CI de GitHub. |
+| SECURITY REVIEW | Revisión independiente del login: 2 hallazgos confirmados (redirección abierta con caracteres de control; cuentas dadas de baja que volvían a entrar) y 5 de endurecimiento (cookies accesibles desde JavaScript, enlace de correo con la cabecera Host, flujo `token_hash`, bucle de cuentas suspendidas, alta simultánea). Todos corregidos con prueba de regresión. |
+| PENDING | Pasos 4 a 14 de V1 (CLAU, AI Router, búsqueda, herramientas, Product Lab, descargas y leads, noticias, YouTube, admin). Recuperar contraseña (necesita proveedor de email). |
+| BLOCKED | Activación en producción: secretos de GitHub para migrar Supabase (el workflow los reporta ausentes) y clave Publishable en Vercel. YouTube, ingesta de noticias, ebook por tendencias, lanzamiento de descargas/leads, pagos: igual que antes. |
+| RISKS | El correo de fábrica de Supabase tiene un límite bajo de envíos por hora: no sirve para el lanzamiento. Leads y costos de IA, como antes. |
+| DEPLOY | Web en https://lombana.vercel.app. Supabase: ver [despliegue.md](despliegue.md) (secretos → migrar → variables de Vercel → URLs de Auth). |
+| DECISIONS | Supabase Auth como proveedor de login (el propietario creó el proyecto). Sin vinculación automática de cuentas con el mismo correo. Callback solo PKCE. ADR 0001–0003. |
+| COST | Cero: Vercel Hobby y Supabase gratuito. |
+| TECH DEBT | Certificado de Supabase sin verificar mientras no se cargue `DATABASE_CA_CERT`; sin linter; sin recuperación de contraseña; límites de intentos de login delegados a Supabase. |
+| NEXT STEP | Cargar los secretos de GitHub y migrar; configurar Vercel y Auth; luego paso 4 — CLAU + Intent Engine (necesita proveedor de IA). |
 
 ## Módulos
 
@@ -25,14 +25,14 @@ Actualizado: 2026-09-29
 | --- | --- | --- |
 | Arquitectura base | V1 | READY |
 | Base de datos | V1 | READY |
-| Auth | V1 | PLANNED (bloqueado por decisión de proveedor) |
-| Layout / Dashboard | V1 | PLANNED |
+| Auth | V1 | READY (activación en producción pendiente de configuración) |
+| Layout / Dashboard | V1 | READY |
 | CLAU + Intent Engine + Orchestrator | V1 | PLANNED |
 | AI Router + créditos | V1 | PLANNED (REQUIERE CREDENCIAL: proveedor de IA) |
 | Search | V1 | PLANNED |
 | Tools (5 + video estructurado) | V1 | PLANNED |
 | Product Lab | V1 | PLANNED |
-| Mis Proyectos | V1 | PLANNED |
+| Mis Proyectos | V1 | READY |
 | Download Engine + Leads | V1 | PLANNED |
 | LOMBANA NEWS | V1 | PLANNED (ingesta BLOCKED) |
 | YouTube: publicar | V1 | BLOCKED |
@@ -40,8 +40,7 @@ Actualizado: 2026-09-29
 
 ## Decisiones que necesito
 
-1. **Proveedor de login:** Supabase Auth o Auth.js. Bloquea el paso 3.
-2. **Proveedor de IA** y cuenta. Bloquea el paso 7.
-3. **Proveedor de email transaccional.** Bloquea descargas.
-4. **País de operación** (define la ley de datos aplicable a los leads).
-5. **Confirmar US$5:** ¿precio mínimo de productos pagos (implementado) o tarifa que paga el creador por crear un producto?
+1. **Proveedor de IA** y cuenta. Bloquea CLAU (paso 4) y el AI Router.
+2. **Proveedor de email transaccional.** Bloquea descargas y recuperar contraseña.
+3. **País de operación** (define la ley de datos aplicable a los leads).
+4. **Confirmar US$5:** ¿precio mínimo de productos pagos (implementado) o tarifa que paga el creador por crear un producto?

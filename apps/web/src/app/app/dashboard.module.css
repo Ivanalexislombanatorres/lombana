@@ -1,0 +1,24 @@
+.wrap { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); }
+.hero { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.ask { padding: 14px; box-shadow: var(--shadow); }
+.askInput {
+  width: 100%; resize: vertical; min-height: 80px; border: 0; outline: none; background: transparent;
+  font-size: 16.5px; padding: 8px 8px 12px; color: var(--text);
+}
+.askInput::placeholder { color: var(--text-3); }
+.askBar { gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+.grid > div { display: grid; gap: 16px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.empty { display: grid; gap: 6px; padding: 18px; border: 1px dashed var(--line-strong); border-radius: 12px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.item:hover { border-color: var(--line-strong); }
+.itemName { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats { margin: 0; display: grid; gap: 14px; }
+.stats div { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.stats dt { font-size: 14px; }
+.stats dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .askBar button[type='submit'] { width: 100%; }
+}

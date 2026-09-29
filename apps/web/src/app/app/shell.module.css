@@ -1,0 +1,41 @@
+.shell { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+.sidebar {
+  position: sticky; top: 0; height: 100vh; padding: 20px 14px; display: flex; flex-direction: column; gap: 22px;
+  border-right: 1px solid var(--line); background: rgba(8, 11, 20, 0.75); backdrop-filter: blur(12px);
+}
+.brandLink { padding: 4px 8px; }
+.nav { display: grid; gap: 4px; }
+.navLink {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+  color: var(--text-2); font-weight: 550; font-size: 14.5px;
+}
+.navLink span { width: 18px; text-align: center; color: var(--text-3); }
+.navLink:hover { background: rgba(148, 163, 199, 0.07); color: var(--text); }
+.navLink[aria-current='page'] { background: rgba(61, 123, 255, 0.12); color: var(--text); box-shadow: inset 2px 0 0 var(--blue); }
+.navLink[aria-current='page'] span { color: var(--blue-2); }
+.sideFoot { margin-top: auto; padding: 8px; }
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5;
+  background: rgba(5, 7, 13, 0.8); backdrop-filter: blur(12px);
+}
+.orgName { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.orgSelect { height: 34px; padding: 0 10px; width: auto; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+}
+.email { font-size: 13.5px; }
+.content { padding: 32px 28px 64px; width: min(1180px, 100%); }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: static; height: auto; min-width: 0; flex-direction: row; align-items: center; overflow-x: auto; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+  .brandLink { flex: none; }
+  .nav { display: flex; gap: 4px; }
+  .navLink { white-space: nowrap; padding: 8px 10px; }
+  .sideFoot { display: none; }
+  .topbar { padding: 0 16px; }
+  .email { display: none; }
+  .content { padding: 20px 16px 48px; }
+}

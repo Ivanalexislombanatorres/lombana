@@ -1,0 +1,26 @@
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.nav { height: 72px; }
+.hero { padding: 72px 0 40px; text-align: center; display: grid; justify-items: center; gap: 18px; }
+.title {
+  background: linear-gradient(180deg, #ffffff 30%, #b9c6e6);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.lead { max-width: 640px; margin: 0; font-size: 17px; }
+.ask { width: min(820px, 100%); padding: 14px; margin-top: 10px; text-align: left; box-shadow: var(--shadow); }
+.askInput {
+  width: 100%; min-height: 64px; resize: none; border: 0; outline: none; background: transparent;
+  font-size: 17px; padding: 8px 8px 12px; color: var(--text);
+}
+.askInput::placeholder { color: var(--text-3); }
+.askBar { gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.fine { margin: 0; font-size: 13px; }
+.status { padding: 48px 0 24px; display: grid; gap: 18px; }
+.grid {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+}
+.footer { margin-top: auto; padding: 28px 0; border-top: 1px solid var(--line); font-size: 13px; gap: 8px; }
+@media (max-width: 640px) {
+  .hero { padding-top: 40px; }
+  .askBar button { width: 100%; }
+}

@@ -32,9 +32,31 @@ jobs:
       - run: npm ci
       - name: Tipos
         run: npm run typecheck
-      - name: Base de datos (migraciones reversibles, aislamiento, reglas, regresiones de seguridad)
+      - name: Pruebas (base de datos, aislamiento, reglas, regresiones de seguridad; unitarias web)
         run: npm test
       - name: Build web
         run: npm run build
+      - name: Build para e2e (login contra el simulador de Supabase Auth)
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54399
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e2e
+        run: npx next build
+      - name: Navegador para e2e
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Pruebas de extremo a extremo (registro, proyectos, aislamiento, seguridad del login, móvil)
+        working-directory: apps/web
+        env:
+          E2E_DATABASE_URL: postgres://lombana_app:ci_app_pw@localhost:5432/lombana_test
+          E2E_DATABASE_ADMIN_URL: postgres://postgres:ci_postgres_pw@localhost:5432/lombana_test
+        run: npx playwright test
+      - name: Trazas de e2e si fallan
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: apps/web/test-results
+          retention-days: 7
       - name: Auditoría de dependencias
         run: npm audit --omit=dev --audit-level=high
