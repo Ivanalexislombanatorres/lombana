@@ -36,7 +36,14 @@ export async function GET() {
   }
 
   return Response.json(
-    { config, envIssues, database, checkedAt: new Date().toISOString() },
+    {
+      config,
+      envIssues,
+      database,
+      // Versión desplegada (commit), para saber si una revisión ve el último despliegue.
+      deployment: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
+      checkedAt: new Date().toISOString(),
+    },
     { headers: { 'cache-control': 'no-store' } },
   );
 }
