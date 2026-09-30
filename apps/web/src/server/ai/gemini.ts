@@ -25,8 +25,34 @@ export interface AiFailure {
   latencyMs: number;
 }
 
-export function geminiConfigured(): boolean {
-  return Boolean(process.env.GEMINI_API_KEY?.trim());
+// La clave se toma de la variable de entorno GEMINI_API_KEY o, si no existe, de Supabase
+// Vault (app.platform_secret). Se cachea unos minutos para no consultar la base en cada página.
+let cachedKey: { value: string | null; at: number } | null = null;
+const KEY_TTL_MS = 5 * 60_000;
+
+async function resolveKey(): Promise<string | null> {
+  const env = process.env.GEMINI_API_KEY?.trim();
+  if (env) return env;
+  if (cachedKey && Date.now() - cachedKey.at < KEY_TTL_MS) return cachedKey.value;
+  let value: string | null = null;
+  try {
+    const { db } = await import('@/server/db');
+    const { rows } = await db().query<{ s: string | null }>("select app.platform_secret('gemini_api_key') as s");
+    value = rows[0]?.s?.trim() || null;
+  } catch {
+    value = null; // Sin base configurada o sin Vault: CLAU queda apagada, sin romper la página.
+  }
+  cachedKey = { value, at: Date.now() };
+  return value;
+}
+
+/** Solo para pruebas. */
+export async function __resetGeminiKeyCache(): Promise<void> {
+  cachedKey = null;
+}
+
+export async function geminiConfigured(): Promise<boolean> {
+  return Boolean(await resolveKey());
 }
 
 export function geminiModel(): string {
@@ -39,7 +65,7 @@ export async function geminiGenerateJson(
 ): Promise<AiResult | AiFailure> {
   const model = geminiModel();
   const started = Date.now();
-  const key = process.env.GEMINI_API_KEY?.trim();
+  const key = await resolveKey();
   if (!key) return { ok: false, code: 'not_configured', model, latencyMs: 0 };
   const base = (process.env.GEMINI_API_BASE?.trim() || DEFAULT_BASE).replace(/\/+$/, '');
   const controller = new AbortController();

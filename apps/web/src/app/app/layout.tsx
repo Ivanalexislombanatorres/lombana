@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 // Menú: solo módulos que existen. Los demás se agregan cuando pasan sus pruebas.
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const account = await requireAccount();
+  const aiOn = await geminiConfigured();
   const initial = (account.displayName ?? account.email).trim().charAt(0).toUpperCase();
 
   return (
@@ -54,7 +55,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </NavLink>
         </nav>
         <div className={styles.sideFoot}>
-          <span className="badge badge-ai">{geminiConfigured() ? 'CLAU AI · activo' : 'CLAU AI · en desarrollo'}</span>
+          <span className="badge badge-ai">{aiOn ? 'CLAU AI · activo' : 'CLAU AI · en desarrollo'}</span>
         </div>
       </aside>
 

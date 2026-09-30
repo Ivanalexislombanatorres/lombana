@@ -71,7 +71,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   });
   if (!data) notFound();
   const { project, progress, tasks, events, proposal } = data;
-  const clauReady = geminiConfigured();
+  const clauReady = await geminiConfigured();
 
   return (
     <div className="stack" style={{ gap: 24 }}>

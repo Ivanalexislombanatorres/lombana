@@ -44,6 +44,7 @@ export default async function Dashboard({
     return { account, projects: projects.rows, stats: stats.rows[0]! };
   });
 
+  const aiOn = await geminiConfigured();
   const firstName = (data.account.displayName ?? '').split(' ')[0];
 
   return (
@@ -52,7 +53,7 @@ export default async function Dashboard({
         <p className="eyebrow">{firstName ? `Hola, ${firstName}` : 'Bienvenido'}</p>
         <h1 className="h1">¿Qué necesitas lograr hoy?</h1>
         <AskBox initialObjective={initialObjective} initialIntent={initialIntent} />
-        {geminiConfigured() ? (
+        {aiOn ? (
           <p className="dim" style={{ margin: 0, fontSize: 13.5 }}>
             Tu objetivo se guarda como proyecto. Dentro, pide a <span className="badge badge-ai">CLAU AI</span> que te
             proponga el plan.

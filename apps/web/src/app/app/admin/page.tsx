@@ -48,6 +48,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const section = visible.find((s) => s.key === params.seccion) ?? visible[0]!;
   const canSettings = perms.includes('admin.settings');
+  const aiOn = await geminiConfigured();
 
   const data = await inOrg(async (tx) => {
     switch (section.key) {
@@ -262,8 +263,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <h2 className="h3">Estado de integraciones</h2>
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               <li>
-                IA de CLAU (Google Gemini): <strong>{geminiConfigured() ? 'activa' : 'sin clave'}</strong>
-                {!geminiConfigured() && ' — agrega GEMINI_API_KEY en Vercel.'}
+                IA de CLAU (Google Gemini): <strong>{aiOn ? 'activa' : 'sin clave'}</strong>
+                {!aiOn && ' — agrega GEMINI_API_KEY en Vercel o en Supabase Vault.'}
               </li>
               <li>
                 Pagos: <strong>deshabilitados</strong> — requieren elegir y contratar una pasarela.

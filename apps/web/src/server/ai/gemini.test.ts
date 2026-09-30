@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { geminiGenerateJson } from './gemini';
+import { __resetGeminiKeyCache, geminiGenerateJson } from './gemini';
 
 const reply = (status: number, body: unknown) =>
   vi.fn(async () => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }));
 
-afterEach(() => {
+afterEach(async () => {
+  await __resetGeminiKeyCache();
   delete process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_MODEL;
 });

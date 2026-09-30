@@ -13,7 +13,7 @@ Actualizado: 2026-09-29
 | PENDING | Pasos 4 a 14 de V1 (CLAU, AI Router, búsqueda, herramientas, Product Lab, descargas y leads, noticias, YouTube, admin). Recuperar contraseña (necesita proveedor de email). |
 | BLOCKED | Activación en producción: solo falta la variable `DATABASE_URL` en Vercel (la pone el propietario; la clave de `lombana_app` ya está creada). YouTube, ingesta de noticias, ebook por tendencias, lanzamiento de descargas/leads, pagos: igual que antes. |
 | RISKS | El correo de fábrica de Supabase tiene un límite bajo de envíos por hora: no sirve para el lanzamiento. Leads y costos de IA, como antes. |
-| DEPLOY | **Plataforma operando** en https://lombana.vercel.app (base conectada, login activo, cuenta del propietario con rol SUPER_ADMIN). Web en https://lombana.vercel.app. Supabase `fazdgwkofhluapbmrjor` (PostgreSQL 17) **migrado 2026-09-29**: 13 migraciones aplicadas con el conector de Supabase, esquema verificado idéntico al probado (columnas, políticas, funciones, restricciones, triggers, permisos, datos iniciales, checksums). anon/authenticated/service_role sin privilegios. Falta: clave de `lombana_app`, variables de Vercel y URLs de Auth ([despliegue.md](despliegue.md)). |
+| DEPLOY | **Plataforma operando** en https://lombana.vercel.app (base conectada, login activo, cuenta del propietario con rol SUPER_ADMIN). Web en https://lombana.vercel.app. Supabase `fazdgwkofhluapbmrjor` (PostgreSQL 17) **migrado 2026-09-29**: 14 migraciones aplicadas con el conector de Supabase, esquema verificado idéntico al probado (columnas, políticas, funciones, restricciones, triggers, permisos, datos iniciales, checksums). anon/authenticated/service_role sin privilegios. Falta: clave de `lombana_app`, variables de Vercel y URLs de Auth ([despliegue.md](despliegue.md)). |
 | DECISIONS | Supabase Auth como proveedor de login (el propietario creó el proyecto). Sin vinculación automática de cuentas con el mismo correo. Callback solo PKCE. ADR 0001–0003. |
 | COST | Cero: Vercel Hobby y Supabase gratuito. |
 | TECH DEBT | Extensión `vector` quedó en el esquema public (aviso WARN de Supabase; sin exposición porque la Data API está cerrada y los roles de Supabase no tienen privilegios): moverla a `extensions` en una migración futura. Certificado de Supabase sin verificar mientras no se cargue `DATABASE_CA_CERT`; sin linter; sin recuperación de contraseña; límites de intentos de login delegados a Supabase. |
@@ -27,7 +27,7 @@ Actualizado: 2026-09-29
 | Base de datos | V1 | READY |
 | Auth | V1 | READY (activación en producción pendiente de configuración) |
 | Layout / Dashboard | V1 | READY |
-| CLAU + Intent Engine + Orchestrator | V1 | IN PROGRESS (CLAU propone planes con Google Gemini; se activa con `GEMINI_API_KEY` en Vercel) |
+| CLAU + Intent Engine + Orchestrator | V1 | IN PROGRESS (CLAU propone planes con Google Gemini; clave en Supabase Vault vía `app.platform_secret`, o `GEMINI_API_KEY` en Vercel, que tiene prioridad) |
 | AI Router + créditos | V1 | IN PROGRESS (adaptador Gemini, registro de consumo en ai_usage, límite de 10 planes/día por persona; créditos pendientes) |
 | Search | V1 | PLANNED |
 | Tools (5 + video estructurado) | V1 | PLANNED |

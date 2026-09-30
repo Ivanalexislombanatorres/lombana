@@ -11,11 +11,12 @@ export const dynamic = 'force-dynamic';
 // /health, que usa el código HTTP para los monitores). Solo informa QUÉ está configurado
 // y una categoría de error; nunca valores, hosts, usuarios ni mensajes internos.
 export async function GET() {
+  const aiOn = await geminiConfigured();
   const config = {
     database: false,
     auth: authConfig() !== null,
     siteUrl: siteUrl() !== null,
-    ai: geminiConfigured(),
+    ai: aiOn,
   };
   let envIssues: string[] = [];
   try {
@@ -42,7 +43,7 @@ export async function GET() {
       config,
       envIssues,
       database,
-      aiModel: geminiConfigured() ? geminiModel() : null,
+      aiModel: aiOn ? geminiModel() : null,
       // Versión desplegada (commit), para saber si una revisión ve el último despliegue.
       deployment: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
       checkedAt: new Date().toISOString(),
