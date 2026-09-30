@@ -1,5 +1,6 @@
 import { withAnonymous } from '@lombana/db';
 import { authConfig, siteUrl } from '@/lib/auth/config';
+import { geminiConfigured, geminiModel } from '@/server/ai/gemini';
 import { db } from '@/server/db';
 import { classifyDbError } from '@/server/diagnostics';
 import { serverEnv } from '@/server/env';
@@ -14,6 +15,7 @@ export async function GET() {
     database: false,
     auth: authConfig() !== null,
     siteUrl: siteUrl() !== null,
+    ai: geminiConfigured(),
   };
   let envIssues: string[] = [];
   try {
@@ -40,6 +42,7 @@ export async function GET() {
       config,
       envIssues,
       database,
+      aiModel: geminiConfigured() ? geminiModel() : null,
       // Versión desplegada (commit), para saber si una revisión ve el último despliegue.
       deployment: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
       checkedAt: new Date().toISOString(),
