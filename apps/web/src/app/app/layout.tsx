@@ -44,6 +44,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               <span aria-hidden>⚑</span> Moderación
             </NavLink>
           )}
+          {account.platformPermissions.some((p) => p !== 'admin.moderate') && (
+            <NavLink href="/app/admin">
+              <span aria-hidden>⚙</span> Administración
+            </NavLink>
+          )}
           <NavLink href="/app/cuenta">
             <span aria-hidden>◉</span> Mi Lombana
           </NavLink>

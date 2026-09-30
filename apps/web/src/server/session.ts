@@ -24,6 +24,8 @@ export interface Account {
   org: OrgSummary;
   /** Moderador de plataforma (rol ADMIN/SUPER_ADMIN con admin.moderate). */
   isModerator: boolean;
+  /** Permisos de plataforma (admin.*) del usuario. */
+  platformPermissions: string[];
 }
 
 interface VerifiedIdentity {
@@ -93,7 +95,7 @@ const accountState = cache(async (): Promise<AccountState> => {
   const userId = resolved.rows[0]?.id ?? (await ensureAccount(identity));
   if (!userId) return { status: 'blocked' };
 
-  const { orgs, displayName, isModerator } = await withTenant(db(), { userId, orgId: null }, async (tx) => {
+  const { orgs, displayName, isModerator, platformPermissions } = await withTenant(db(), { userId, orgId: null }, async (tx) => {
     const o = await tx.query<OrgSummary>(
       `select o.id, o.name, o.kind, m.role_code as role
          from public.memberships m
@@ -102,18 +104,24 @@ const accountState = cache(async (): Promise<AccountState> => {
         order by (o.kind = 'personal') desc, o.created_at`,
       [userId],
     );
-    const u = await tx.query<{ display_name: string | null; moderator: boolean }>(
-      "select display_name, app.has_platform_permission('admin.moderate') as moderator from public.users where id = $1",
+    const u = await tx.query<{ display_name: string | null; perms: string[] }>(
+      'select display_name, app.my_platform_permissions() as perms from public.users where id = $1',
       [userId],
     );
-    return { orgs: o.rows, displayName: u.rows[0]?.display_name ?? null, isModerator: u.rows[0]?.moderator ?? false };
+    const perms = u.rows[0]?.perms ?? [];
+    return {
+      orgs: o.rows,
+      displayName: u.rows[0]?.display_name ?? null,
+      isModerator: perms.includes('admin.moderate'),
+      platformPermissions: perms,
+    };
   });
   if (orgs.length === 0) return { status: 'blocked' };
 
   const store = await cookies();
   const wanted = store.get(ORG_COOKIE)?.value;
   const org = orgs.find((o) => o.id === wanted) ?? orgs[0]!;
-  return { status: 'ok', account: { userId, email: identity.email, displayName, orgs, org, isModerator } };
+  return { status: 'ok', account: { userId, email: identity.email, displayName, orgs, org, isModerator, platformPermissions } };
 });
 
 /** Cuenta activa de la petición actual, o null (sin sesión, suspendida o dada de baja). */

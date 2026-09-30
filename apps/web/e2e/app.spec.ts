@@ -352,6 +352,68 @@ test.describe.serial('flujo principal V1', () => {
     await expect(page.getByTestId('review-note')).toHaveText('Revisión: Falta subir el archivo del checklist');
   });
 
+  test('Administración: superadministrador gobierna usuarios, roles, auditoría y precio mínimo', async ({ page, browser }) => {
+    // Ana no tiene acceso.
+    await logIn(page, email);
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.getByRole('link', { name: /Administración/ })).toHaveCount(0);
+    expect((await page.goto('/app/admin'))?.status()).toBe(404);
+
+    const root = await browser.newPage();
+    const rootEmail = `root-${stamp}@example.com`;
+    await signUp(root, 'Raúl Root', rootEmail);
+    await adminQuery(
+      `insert into public.platform_role_assignments (user_id, role_code)
+       select id, 'SUPER_ADMIN' from public.users where email_normalized = $1`,
+      [rootEmail],
+    );
+    await root.goto('/app/admin');
+    await expect(root.getByRole('heading', { name: 'Administración' })).toBeVisible();
+    await expect(root.getByTestId('metric-users_active')).toBeVisible();
+
+    // Usuarios: buscar a Ana, suspender exige motivo, luego reactivar.
+    await root.getByRole('link', { name: 'Usuarios' }).click();
+    await root.getByLabel('Buscar usuario').fill(email);
+    await root.getByRole('button', { name: 'Buscar' }).click();
+    const ana = root.getByTestId('admin-user').filter({ hasText: email });
+    await ana.getByRole('button', { name: 'Suspender' }).click();
+    await expect(ana.locator('p[role="alert"]')).toHaveText('Indica el motivo del cambio');
+    await ana.getByPlaceholder('Motivo (obligatorio)').fill('Prueba de gobierno');
+    await ana.getByRole('button', { name: 'Suspender' }).click();
+    await expect(ana.getByText('Suspendida', { exact: true })).toBeVisible();
+    await ana.getByPlaceholder('Motivo (obligatorio)').fill('Revisado');
+    await ana.getByRole('button', { name: 'Reactivar' }).click();
+    await expect(ana.getByText('Activa', { exact: true })).toBeVisible();
+
+    // Roles: asignar y retirar ADMIN.
+    await ana.getByLabel('Rol de plataforma').selectOption('ADMIN');
+    await ana.getByRole('button', { name: 'Asignar' }).click();
+    await expect(ana.locator('.badge-ai', { hasText: 'ADMIN' })).toBeVisible();
+    await ana.getByRole('button', { name: 'Retirar' }).click();
+    await expect(ana.locator('.badge-ai', { hasText: 'ADMIN' })).toHaveCount(0);
+
+    // Su propia cuenta no se puede tocar.
+    await root.getByLabel('Buscar usuario').fill(rootEmail);
+    await root.getByRole('button', { name: 'Buscar' }).click();
+    await expect(root.getByText('Es tu cuenta: no puedes suspenderla')).toBeVisible();
+
+    // Configuración: precio mínimo.
+    await root.getByRole('link', { name: 'Configuración' }).click();
+    await root.getByLabel('Precio mínimo de productos de pago (USD)').fill('7');
+    await root.getByRole('button', { name: 'Guardar' }).click();
+    await expect(root.getByText('Vigente: US$7.00.', { exact: false })).toBeVisible();
+    await root.getByLabel('Precio mínimo de productos de pago (USD)').fill('5');
+    await root.getByRole('button', { name: 'Guardar' }).click();
+    await expect(root.getByText('Vigente: US$5.00.', { exact: false })).toBeVisible();
+
+    // Auditoría: quedan registradas las acciones.
+    await root.getByRole('link', { name: 'Auditoría' }).click();
+    await expect(root.getByText('admin.user_status').first()).toBeVisible();
+    await expect(root.getByText('admin.role_grant').first()).toBeVisible();
+    await expect(root.getByText('admin.min_price').first()).toBeVisible();
+    await root.close();
+  });
+
   test('una cuenta suspendida no entra y ve un aviso claro, sin bucles', async ({ page, browser }) => {
     const suspended = `susp-${stamp}@example.com`;
     await signUp(page, 'Cuenta Suspendida', suspended);
@@ -410,7 +472,7 @@ test('ninguna página se desborda horizontalmente en móvil', async ({ page }) =
   await page.getByRole('button', { name: 'Crear proyecto' }).click();
   await expect(page).toHaveURL(/\/app\/proyectos\//);
   expect(await overflow(), 'detalle de proyecto').toBeLessThanOrEqual(0);
-  for (const path of ['/noticias', '/app', '/app/proyectos', '/app/productos', '/app/productos/nuevo', '/app/noticias', '/app/herramientas', '/app/cuenta']) {
+  for (const path of ['/noticias', '/app', '/app/proyectos', '/app/productos', '/app/productos/nuevo', '/app/noticias', '/app/herramientas', '/app/cuenta', '/app/admin']) {
     await page.goto(path);
     expect(await overflow(), path).toBeLessThanOrEqual(0);
   }
