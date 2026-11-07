@@ -298,12 +298,12 @@ $('pass').onkeydown = e => { if (e.key==='Enter') $('btnLogin').click(); };
 $('btnSignup').onclick = async () => {
   const email=$('email').value.trim(), password=$('pass').value;
   if (password.length < 6) return msg('La contraseña debe tener al menos 6 caracteres.');
-  const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo: location.origin } });
+  const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo: location.href.split(/[?#]/)[0] } });
   error ? msg(error.message) : msg('Cuenta creada. Revisa tu correo y confírmala para poder ingresar.', true);
 };
 $('btnMagic').onclick = async () => {
   const email=$('email').value.trim(); if(!email) return msg('Escribe tu correo primero.');
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin } });
+  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split(/[?#]/)[0] } });
   error ? msg(error.message) : msg('Te enviamos un enlace de acceso. Ábrelo desde este mismo navegador.', true);
 };
 $('btnLogout').onclick = () => sb.auth.signOut();

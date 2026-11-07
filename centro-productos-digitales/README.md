@@ -70,23 +70,19 @@ La carpeta se arma sola: **TIPO / CÓDIGO / CATEGORÍA / fecha_archivo**.
 - **Ebook:** Guía Definitiva de Asadores (Hotmart, En venta)
 - **Catálogo:** NOVA MARKET
 
-## 5. Publicar en Vercel
-El código vive en el repositorio `Ivanalexislombanatorres/lombana`, carpeta **`centro-productos-digitales/`** (aparte de LOMBANA AI, que está en `apps/web`).
+## 5. Dónde está publicado
+**En línea dentro de tu sitio de Vercel `lombana`:**
+- Centro: https://lombana.vercel.app/centro/index.html
+- Laboratorio: https://lombana.vercel.app/centro/laboratorio.html
+- Presidencia: https://lombana.vercel.app/centro/presidencia.html
 
-**Una sola vez:**
-1. vercel.com → **Add New → Project** → importar `lombana`.
-2. **Project Name:** `centro-productos-digitales`.
-3. **Root Directory:** clic en *Edit* → elegir `centro-productos-digitales`.
-4. **Framework Preset:** `Other` (sin comando de build) → **Deploy**.
+Los archivos publicados están en `apps/web/public/centro/` del repositorio `Ivanalexislombanatorres/lombana`. Cada cambio que se sube a `main` se publica solo. Esta carpeta (`centro-productos-digitales/`) es la copia maestra; las dos se mantienen iguales.
 
-Desde ahí, cada cambio en esta carpeta se publica solo. `vercel.json` incluye una regla (`ignoreCommand`) para que este proyecto solo se vuelva a publicar cuando cambia esta carpeta.
-
-Páginas: `/` (Centro) · `/laboratorio` · `/presidencia`
+**Opcional, dominio propio:** si más adelante quieres una dirección separada (ej. `centro-productos-digitales.vercel.app`): vercel.com → Add New → Project → importar `lombana` → Root Directory `centro-productos-digitales` → Framework `Other` → Deploy.
 
 ## 6. Conectar el login (obligatorio)
 Supabase → **Authentication → URL Configuration**
-- **Site URL:** tu dirección de Vercel
-- **Redirect URLs:** `https://TU-DIRECCION.vercel.app/**`
+- **Redirect URLs:** agrega `https://lombana.vercel.app/centro/**` (no cambies el Site URL si LOMBANA AI usa este mismo proyecto; este Supabase es otro, ERP-CENTRO-ALMACENAMIENTO, así que aquí puedes poner Site URL `https://lombana.vercel.app/centro/index.html`)
 
 ## 7. Primer ingreso
 1. Abre la página → escribe **ivanalexislombanatorres@gmail.com** + contraseña → **Crear cuenta**.

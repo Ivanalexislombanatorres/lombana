@@ -128,7 +128,7 @@
     <div class="field"><label>Contraseña</label><input id="pass" type="password" autocomplete="current-password"></div>
     <button class="btn lab" style="width:100%" id="btnLogin">Ingresar</button>
     <div class="msg" id="loginMsg"></div>
-    <p style="font-size:12px;color:var(--mut);margin-top:10px">¿Aún sin cuenta? Créala en el <a href="./">Centro de Productos</a>; la sesión es la misma.</p>
+    <p style="font-size:12px;color:var(--mut);margin-top:10px">¿Aún sin cuenta? Créala en el <a href="index.html">Centro de Productos</a>; la sesión es la misma.</p>
   </div>
 </section>
 
@@ -445,7 +445,7 @@ function pintarDrawer(){
   const prod = D.productos.find(x=>x.id===p.producto_id);
   const pendPru = pr.filter(x=>x.resultado!=='Aprobada').length;
   $('t-resumen').innerHTML = `
-    ${prod ? `<div class="banner"><span>✅ Publicado en el Centro como <b>${esc(prod.codigo)} · ${esc(prod.nombre)}</b></span><a class="btn sm" href="./">Ver en el Centro</a></div>`
+    ${prod ? `<div class="banner"><span>✅ Publicado en el Centro como <b>${esc(prod.codigo)} · ${esc(prod.nombre)}</b></span><a class="btn sm" href="index.html">Ver en el Centro</a></div>`
            : `<div class="banner"><span>🚀 Cuando esté listo, publícalo: se crea el producto en el Centro${h.length?' y se guarda la última página HTML como entregable':''}.${pendPru?`<br><small style="color:var(--gold2)">Tiene ${pendPru} prueba(s) sin aprobar.</small>`:''}</span><button class="btn gold sm" id="btnPublicar">Publicar en el Centro</button></div>`}
     <div class="g2">
       <div class="li"><div class="tx"><small>Etapa</small><b>${esc(p.etapa)}</b></div></div>

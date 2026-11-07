@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Presidencia · Lombana Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b1020;--panel:#121a30;--panel2:#18223d;--line:#25314f;--txt:#e8ecf6;--mut:#8e9bbd;--gold:#d4a017;--gold2:#f2c94c;--ok:#2ecc71;--bad:#ef5350;--warn:#ff9800;--blue:#4c8dff;--r:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:14px;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+  a{color:var(--gold2)}
+  .btn{border-radius:10px;padding:10px 16px;font-weight:600;font-size:14px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);transition:.15s;white-space:nowrap}
+  .btn:hover{border-color:var(--gold)}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1300;border:0}
+  .btn.danger{color:var(--bad)} .btn.sm{padding:6px 10px;font-size:12px} .btn.xs{padding:3px 7px;font-size:11px;border-radius:6px}
+  .hidden{display:none!important}
+  .row{display:flex;gap:10px;align-items:center} .wrap{flex-wrap:wrap}
+  .msg{font-size:13px;margin-top:12px;min-height:18px} .msg.err{color:var(--bad)}
+  .field{margin-bottom:12px} .field label{display:block;font-size:12px;color:var(--mut);margin-bottom:6px;font-weight:600}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#8a6400,var(--gold2));display:grid;place-items:center;color:#1a1300;font-weight:800;font-size:20px;flex-shrink:0}
+  .logo h1{font-size:17px;line-height:1.2} .logo small{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .tag{white-space:nowrap;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--panel2);color:var(--mut);letter-spacing:.03em}
+  .pill{white-space:nowrap;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block}
+  .empty{text-align:center;color:var(--mut);padding:30px;font-size:14px}
+
+  #login{display:grid;place-items:center;min-height:100vh;padding:20px;background:radial-gradient(1000px 500px at 20% 0%,#2a2205 0%,transparent 60%),radial-gradient(800px 400px at 100% 100%,#1d2a55 0%,transparent 55%),var(--bg)}
+  .login-card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:34px}
+  .login-card .logo{margin-bottom:24px}
+
+  #app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+  aside.side{background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+  aside.side .logo{padding:0 6px 20px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .nav-t{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:10px 8px 6px}
+  .nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;cursor:pointer;color:var(--txt);border:1px solid transparent;text-decoration:none}
+  .nav:hover{background:var(--panel2)} .nav.on{background:var(--panel2);border-color:var(--gold)}
+  .nav .ic{width:22px;text-align:center} .nav .n{margin-left:auto;font-size:12px;color:var(--mut);background:var(--bg);padding:2px 8px;border-radius:20px}
+  .side-foot{margin-top:18px;padding:12px 8px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+  main{padding:24px 28px;min-width:0;max-width:1500px}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+  .head h2{font-size:24px} .head p{color:var(--mut);font-size:13px;margin-top:2px}
+  .periodo{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .periodo button{background:var(--panel);border:0;color:var(--mut);padding:9px 12px;font-size:13px;font-weight:600}
+  .periodo button.on{background:var(--panel2);color:var(--gold2)}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
+  .kpi span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .kpi b{display:block;font-size:24px;margin-top:6px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .kpi em{font-style:normal;font-size:12px;color:var(--mut)}
+  .kpi.hero{grid-column:span 2} .kpi.hero b{font-size:32px}
+  .up{color:var(--ok)} .down{color:var(--bad)}
+
+  .two{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:22px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+  .box h3{font-size:14px;margin-bottom:4px} .box .sub{font-size:12px;color:var(--mut);margin-bottom:14px}
+  .section-title{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:6px 0 12px}
+
+  /* chart */
+  .chart{position:relative;height:220px}
+  .chart svg{width:100%;height:100%;overflow:visible}
+  .tip{position:absolute;pointer-events:none;background:#0a0f1d;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;white-space:nowrap;transform:translate(-50%,-110%);z-index:2}
+  .tip b{display:block;font-size:13px;margin-bottom:2px}
+
+  /* nichos */
+  .units{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:22px}
+  .unit{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:.15s}
+  .unit:hover{border-color:var(--gold)}
+  .unit .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .unit h4{font-size:16px;display:flex;align-items:center;gap:8px}
+  .unit .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .nums div{background:var(--panel2);border-radius:10px;padding:9px 10px}
+  .nums span{display:block;font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .nums b{font-size:14px;white-space:nowrap}
+  .meta-bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden} .meta-bar i{display:block;height:100%;border-radius:6px}
+  .meta-t{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:6px}
+  .unit .foot{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);border-top:1px solid var(--line);padding-top:10px;gap:8px;flex-wrap:wrap}
+  .estado{font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+
+  .alert{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .alert:last-child{border:0} .alert .i{font-size:15px;width:20px;text-align:center}
+  .alert small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+  .rank{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .rank:last-child{border:0} .rank .pos{width:22px;color:var(--mut);font-weight:700}
+  .rank .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank .bar{width:90px;height:6px;background:var(--line);border-radius:4px;overflow:hidden} .rank .bar i{display:block;height:100%;background:var(--gold)}
+
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;padding:10px 12px;background:var(--panel2);color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .tbl td{padding:10px 12px;border-top:1px solid var(--line)} .tbl td.n,.tbl th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .tbl-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:auto}
+  .form-line{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr 1.2fr auto;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:16px}
+  .form-line .field{margin:0}
+  .dec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+  .dec h4{font-size:15px} .dec p{font-size:13px;color:var(--mut);white-space:pre-wrap}
+  .dec .foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:auto;gap:8px;flex-wrap:wrap}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+
+  .modal{position:fixed;inset:0;display:grid;place-items:center;z-index:20;padding:20px;background:rgba(0,0,0,.55)}
+  .modal-c{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:620px;max-height:92vh;overflow:auto}
+  .modal-c h2{margin-bottom:16px;font-size:18px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px} .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  #toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .toast{background:var(--panel2);border:1px solid var(--gold);padding:12px 18px;border-radius:10px;font-size:14px}
+  .menu-btn{display:none}
+  @media(max-width:1250px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi.hero{grid-column:span 1}.two{grid-template-columns:1fr}.form-line{grid-template-columns:1fr 1fr 1fr}}
+  @media(max-width:860px){
+    #app{grid-template-columns:1fr} aside.side{position:fixed;left:0;z-index:15;width:270px;transform:translateX(-100%);transition:.2s}
+    aside.side.open{transform:none} .menu-btn{display:inline-block} main{padding:18px 16px}
+    .kpis{grid-template-columns:repeat(2,1fr)} .g2,.g3,.form-line{grid-template-columns:1fr} .periodo{overflow-x:auto;max-width:100%}
+    .kpi.hero{grid-column:span 2} .kpi.hero b{font-size:26px}
+  }
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="login-card">
+    <div class="logo"><div class="logo-ico">♛</div><div><small>Lombana Studio</small><h1>Presidencia</h1></div></div>
+    <div class="field"><label>Correo</label><input id="email" type="email" autocomplete="email"></div>
+    <div class="field"><label>Contraseña</label><input id="pass" type="password" autocomplete="current-password"></div>
+    <button class="btn gold" style="width:100%" id="btnLogin">Ingresar</button>
+    <div class="msg err" id="loginMsg"></div>
+    <p style="font-size:12px;color:var(--mut);margin-top:10px">¿Aún sin cuenta? Créala en el <a href="index.html">Centro de Productos</a>; la sesión es la misma.</p>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+  <aside class="side" id="side">
+    <div class="logo"><div class="logo-ico">♛</div><div><small>Lombana Studio</small><h1>Presidencia</h1></div></div>
+    <div class="nav-t">Presidencia</div>
+    <div class="nav on" data-s="resumen"><span class="ic">♛</span>Resumen presidencial</div>
+    <div class="nav" data-s="nichos"><span class="ic">🧭</span>Nichos de negocio<span class="n" id="nNichos">0</span></div>
+    <div class="nav" data-s="ventas"><span class="ic">💰</span>Ventas<span class="n" id="nVentas">0</span></div>
+    <div class="nav" data-s="gastos"><span class="ic">🧾</span>Gastos<span class="n" id="nGastos">0</span></div>
+    <div class="nav" data-s="decisiones"><span class="ic">⚖️</span>Decisiones<span class="n" id="nDec">0</span></div>
+    <div class="nav-t">Ir a</div>
+    <a class="nav" href="index.html"><span class="ic">🗄️</span>Centro de Productos</a>
+    <a class="nav" href="laboratorio.html"><span class="ic">⚗️</span>Laboratorio</a>
+    <div class="side-foot"><div id="userEmail" style="margin-bottom:8px;word-break:break-all"></div><button class="btn sm" id="btnLogout">Cerrar sesión</button></div>
+  </aside>
+
+  <main>
+    <div class="head">
+      <div class="row"><button class="btn sm menu-btn" id="btnMenu">☰</button><div><h2 id="titulo">♛ Resumen presidencial</h2><p id="subtitulo"></p></div></div>
+      <div class="row wrap">
+        <div class="periodo" id="periodo">
+          <button data-p="mes" class="on">Este mes</button><button data-p="mesant">Mes anterior</button><button data-p="tri">Últimos 3 meses</button><button data-p="anio">Este año</button><button data-p="todo">Todo</button>
+        </div>
+        <button class="btn gold hidden" id="btnNuevo">+ Nuevo</button>
+      </div>
+    </div>
+
+    <!-- RESUMEN -->
+    <section id="s-resumen">
+      <div class="kpis">
+        <div class="kpi hero"><span>Utilidad del período</span><b id="kUtil">$0</b><em id="kUtilM"></em></div>
+        <div class="kpi"><span>Ingresos</span><b id="kIng">$0</b><em id="kIngV"></em></div>
+        <div class="kpi"><span>Gastos</span><b id="kGas">$0</b><em id="kGasN"></em></div>
+        <div class="kpi"><span>Productos en venta</span><b id="kVenta">0</b><em id="kProd"></em></div>
+        <div class="kpi"><span>Proyectos en laboratorio</span><b id="kLab">0</b><em id="kLabA"></em></div>
+      </div>
+
+      <div class="two">
+        <div class="box">
+          <h3>Ingresos por mes</h3><div class="sub">Últimos 12 meses · pasa el cursor sobre cada barra para ver ingresos, gastos y utilidad</div>
+          <div class="chart" id="chart"></div>
+        </div>
+        <div class="box">
+          <h3>⚠️ Alertas que requieren atención</h3><div class="sub" id="alertSub"></div>
+          <div id="alertas" style="max-height:230px;overflow:auto"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Nichos de negocio · desempeño del período</div>
+      <div class="units" id="units"></div>
+
+      <div class="two">
+        <div class="box"><h3>🏆 Productos que más venden</h3><div class="sub">Ingresos del período</div><div id="ranking"></div></div>
+        <div class="box"><h3>⚖️ Decisiones pendientes</h3><div class="sub">Ordenadas por fecha límite</div><div id="decRes"></div></div>
+      </div>
+    </section>
+
+    <!-- NICHOS -->
+    <section id="s-nichos" class="hidden">
+      <div class="tbl-wrap"><table class="tbl" id="tNichos"></table></div>
+    </section>
+
+    <!-- VENTAS -->
+    <section id="s-ventas" class="hidden">
+      <div class="form-line">
+        <div class="field"><label>Producto</label><select id="vProd"></select></div>
+        <div class="field"><label>Fecha</label><input id="vFecha" type="date"></div>
+        <div class="field"><label>Cantidad</label><input id="vCant" type="number" min="1" value="1"></div>
+        <div class="field"><label>Valor unitario (COP)</label><input id="vValor" type="number" min="0" step="1"></div>
+        <div class="field"><label>Canal</label><input id="vCanal" list="canales" value="Hotmart"><datalist id="canales"><option value="Hotmart"><option value="Directo"><option value="WhatsApp"><option value="Transferencia"><option value="Contrato"></datalist></div>
+        <button class="btn gold" id="vGuardar">Registrar venta</button>
+      </div>
+      <div class="tbl-wrap"><table class="tbl" id="tVentas"></table></div>
+    </section>
+
+    <!-- GASTOS -->
+    <section id="s-gastos" class="hidden">
+      <div class="form-line">
+        <div class="field"><label>Concepto</label><input id="gConc" placeholder="Ej: Anuncios Facebook"></div>
+        <div class="field"><label>Nicho</label><select id="gUni"></select></div>
+        <div class="field"><label>Fecha</label><input id="gFecha" type="date"></div>
+        <div class="field"><label>Categoría</label><select id="gCat"><option>Publicidad</option><option>Software / suscripciones</option><option>Hosting / dominio</option><option>Diseño</option><option>Herramientas IA</option><option>Comisiones</option><option>Otro</option></select></div>
+        <div class="field"><label>Valor (COP)</label><input id="gValor" type="number" min="0" step="1"></div>
+        <button class="btn gold" id="gGuardar">Registrar gasto</button>
+      </div>
+      <div class="tbl-wrap"><table class="tbl" id="tGastos"></table></div>
+    </section>
+
+    <!-- DECISIONES -->
+    <section id="s-decisiones" class="hidden">
+      <div class="cards" id="decisiones"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal hidden" id="modal"><div class="modal-c"><h2 id="mTitle"></h2><div id="mBody"></div>
+  <div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn danger" id="mBorrar">Eliminar</button><div class="row"><button class="btn" id="mCancel">Cancelar</button><button class="btn gold" id="mGuardar">Guardar</button></div></div>
+  <div class="msg err" id="mMsg"></div></div></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://lzgakoyqczjhpqzlfsxc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uzeDMHyqzbP76CEavyEoyA_PZWRNCkA';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+let D = {uni:[], prod:[], ventas:[], gastos:[], dec:[], lab:[], arch:[]};
+let seccion='resumen', periodo='mes';
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = v => new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v||0);
+const moneyK = v => { const a=Math.abs(v||0); const s=v<0?'-':''; return a>=1e6? s+'$'+(a/1e6).toFixed(a>=1e7?0:1)+' M' : a>=1e3? s+'$'+Math.round(a/1e3)+' mil' : money(v); };
+const fmtDia = d => d ? new Date(d+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const hoyISO = () => { const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const pill = (t,c) => `<span class="pill" style="background:${c}22;color:${c}">${esc(t)}</span>`;
+const uniDe = c => D.uni.find(u=>u.codigo===c) || {nombre:'Sin nicho',icono:'❔',color:'#757575'};
+function toast(t){ let w=$('toasts'); if(!w){ w=document.createElement('div'); w.id='toasts'; document.body.appendChild(w); } const d=document.createElement('div'); d.className='toast'; d.textContent=t; w.appendChild(d); setTimeout(()=>d.remove(),3000); }
+async function q(p){ const r=await p; if(r.error){ toast('Error: '+r.error.message); throw r.error; } return r.data; }
+async function log(accion, detalle, producto_id=null){ await sb.from('registro').insert({accion:'PRES · '+accion, detalle, producto_id}); }
+
+/* ===== PERÍODO ===== */
+function rango(p=periodo){
+  const h=new Date(), y=h.getFullYear(), m=h.getMonth(), iso=d=>d.toISOString().slice(0,10);
+  const d=(yy,mm,dd)=>new Date(Date.UTC(yy,mm,dd));
+  if (p==='mes') return [iso(d(y,m,1)), iso(d(y,m+1,0)), 'este mes'];
+  if (p==='mesant') return [iso(d(y,m-1,1)), iso(d(y,m,0)), 'el mes anterior'];
+  if (p==='tri') return [iso(d(y,m-2,1)), iso(d(y,m+1,0)), 'los últimos 3 meses'];
+  if (p==='anio') return [iso(d(y,0,1)), iso(d(y,11,31)), 'este año'];
+  return ['0000-01-01','9999-12-31','todo el historial'];
+}
+const enRango = (f,[a,b]) => f>=a && f<=b;
+const mesesPeriodo = () => ({mes:1,mesant:1,tri:3,anio:new Date().getMonth()+1})[periodo] ?? null;
+document.querySelectorAll('#periodo button').forEach(b=>b.onclick=()=>{ periodo=b.dataset.p; document.querySelectorAll('#periodo button').forEach(x=>x.classList.toggle('on',x===b)); pintar(); });
+
+/* ===== AUTH ===== */
+$('btnLogin').onclick = async () => { const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('pass').value }); if (error) $('loginMsg').textContent = error.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : error.message; };
+$('pass').onkeydown = e => { if (e.key==='Enter') $('btnLogin').click(); };
+$('btnLogout').onclick = () => sb.auth.signOut();
+sb.auth.onAuthStateChange((_e, s) => {
+  if (s){ $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('userEmail').textContent=s.user.email; if(!D.uni.length) cargar(); }
+  else { $('app').classList.add('hidden'); $('login').classList.remove('hidden'); }
+});
+
+/* ===== CARGA ===== */
+async function cargar(){
+  const r = await Promise.all([
+    sb.from('unidades_negocio').select('*').order('orden'),
+    sb.from('productos').select('id,codigo,nombre,tipo,unidad,estado,precio,plataforma_venta').order('nombre'),
+    sb.from('ventas').select('*').order('fecha',{ascending:false}),
+    sb.from('gastos').select('*').order('fecha',{ascending:false}),
+    sb.from('decisiones').select('*').order('fecha_limite'),
+    sb.from('lab_proyectos').select('id,codigo,nombre,etapa,unidad,fecha_objetivo,prioridad'),
+    sb.from('producto_archivos').select('producto_id')
+  ]);
+  const err=r.find(x=>x.error); if(err) return toast('Error: '+err.error.message);
+  [D.uni,D.prod,D.ventas,D.gastos,D.dec,D.lab,D.arch] = r.map(x=>x.data||[]);
+  $('nNichos').textContent=D.uni.length; $('nVentas').textContent=D.ventas.length; $('nGastos').textContent=D.gastos.length;
+  $('nDec').textContent=D.dec.filter(d=>d.estado==='Pendiente').length;
+  const pv=$('vProd').value, gu=$('gUni').value;
+  $('vProd').innerHTML = D.uni.map(u=>{ const ps=D.prod.filter(p=>p.unidad===u.codigo); return ps.length?`<optgroup label="${esc(u.icono+' '+u.nombre)}">${ps.map(p=>`<option value="${p.id}">${esc(p.codigo)} · ${esc(p.nombre)}</option>`).join('')}</optgroup>`:''; }).join('');
+  if (pv) $('vProd').value=pv;
+  $('gUni').innerHTML = D.uni.map(u=>`<option value="${u.codigo}">${esc(u.icono+' '+u.nombre)}</option>`).join(''); if (gu) $('gUni').value=gu;
+  if (!$('vFecha').value) $('vFecha').value=hoyISO(); if (!$('gFecha').value) $('gFecha').value=hoyISO();
+  pintar();
+}
+
+/* ===== NAVEGACIÓN ===== */
+const TXT = {resumen:['♛ Resumen presidencial',''], nichos:['🧭 Nichos de negocio','Tus unidades de negocio: meta mensual, objetivo y estado','+ Nuevo nicho'],
+  ventas:['💰 Ventas','Registra cada venta para saber qué producto y qué nicho rinden',''], gastos:['🧾 Gastos','Lo que inviertes en cada nicho: publicidad, software, hosting…',''],
+  decisiones:['⚖️ Decisiones','La agenda de decisiones de la presidencia','+ Nueva decisión']};
+document.querySelectorAll('.nav[data-s]').forEach(n=>n.onclick=()=>ir(n.dataset.s));
+$('btnMenu').onclick=()=>$('side').classList.toggle('open');
+function ir(s){
+  seccion=s; $('side').classList.remove('open');
+  document.querySelectorAll('.nav[data-s]').forEach(n=>n.classList.toggle('on',n.dataset.s===s));
+  Object.keys(TXT).forEach(k=>$('s-'+k).classList.toggle('hidden',k!==s));
+  $('titulo').textContent=TXT[s][0]; $('btnNuevo').textContent=TXT[s][2]||''; $('btnNuevo').classList.toggle('hidden',!TXT[s][2]);
+  $('periodo').classList.toggle('hidden', ['nichos','decisiones'].includes(s));
+  pintar();
+}
+$('btnNuevo').onclick=()=>({nichos:()=>formNicho(), decisiones:()=>formDec()})[seccion]?.();
+function pintar(){
+  const [, , txt] = rango();
+  $('subtitulo').textContent = seccion==='resumen' ? `Visión de todo el portafolio · ${txt}` : (TXT[seccion][1] + (['ventas','gastos'].includes(seccion)?` · ${txt}`:''));
+  ({resumen, nichos, ventas, gastos, decisiones})[seccion]();
+}
+
+/* ===== CÁLCULOS ===== */
+function calcUnidad(u, rg){
+  const ps=D.prod.filter(p=>p.unidad===u.codigo), ids=new Set(ps.map(p=>p.id));
+  const ing=D.ventas.filter(v=>ids.has(v.producto_id)&&enRango(v.fecha,rg)).reduce((s,v)=>s+Number(v.total),0);
+  const gas=D.gastos.filter(g=>g.unidad===u.codigo&&enRango(g.fecha,rg)).reduce((s,g)=>s+Number(g.valor),0);
+  const meses=mesesPeriodo(); const meta = meses && u.meta_ingresos_mes>0 ? Number(u.meta_ingresos_mes)*meses : 0;
+  const lab=D.lab.filter(l=>l.unidad===u.codigo && !['Publicado','Descartado'].includes(l.etapa));
+  return {ps, ing, gas, util:ing-gas, meta, lab, venta:ps.filter(p=>p.estado==='En venta').length};
+}
+function semaforo(u,c){
+  if (!u.es_propia) return ['● Operación de terceros','#4c8dff'];
+  if (u.estado!=='Activa') return ['● '+u.estado,'#8e9bbd'];
+  if (c.ing===0 && c.gas===0) return ['● Sin movimiento','#8e9bbd'];
+  if (c.util<0) return ['▼ Pierde dinero','#ef5350'];
+  if (c.meta && c.ing>=c.meta) return ['▲ Cumple la meta','#2ecc71'];
+  if (c.meta) return ['■ Rinde, bajo la meta','#ff9800'];
+  return ['▲ Rinde','#2ecc71'];
+}
+
+/* ===== RESUMEN ===== */
+function resumen(){
+  const rg=rango();
+  const vs=D.ventas.filter(v=>enRango(v.fecha,rg)), gs=D.gastos.filter(g=>enRango(g.fecha,rg));
+  const ing=vs.reduce((s,v)=>s+Number(v.total),0), gas=gs.reduce((s,g)=>s+Number(g.valor),0), util=ing-gas;
+  $('kUtil').textContent=money(util); $('kUtil').className=util<0?'down':'';
+  $('kUtilM').textContent = ing ? `Margen ${Math.round(util/ing*100)}% sobre ingresos` : 'Aún sin ingresos registrados en el período';
+  $('kIng').textContent=moneyK(ing); $('kIngV').textContent=`${vs.reduce((s,v)=>s+v.cantidad,0)} unidad(es) vendidas`;
+  $('kGas').textContent=moneyK(gas); $('kGasN').textContent=`${gs.length} registro(s)`;
+  $('kVenta').textContent=D.prod.filter(p=>p.estado==='En venta').length; $('kProd').textContent=`de ${D.prod.length} productos en total`;
+  const la=D.lab.filter(l=>!['Publicado','Descartado'].includes(l.etapa));
+  $('kLab').textContent=la.length; $('kLabA').textContent=`${la.filter(l=>l.fecha_objetivo&&l.fecha_objetivo<hoyISO()).length} atrasado(s)`;
+
+  // nichos
+  $('units').innerHTML = D.uni.filter(u=>u.estado!=='Cerrada').map(u=>{
+    const c=calcUnidad(u,rg), [st,sc]=semaforo(u,c), pct=c.meta?Math.min(100,Math.round(c.ing/c.meta*100)):0;
+    return `<div class="unit" data-u="${u.codigo}" style="border-top:3px solid ${esc(u.color)}">
+      <div class="top"><h4><span class="ico" style="background:${esc(u.color)}26">${esc(u.icono)}</span>${esc(u.nombre)}</h4>${u.es_propia?pill('Propio','#d4a017'):pill('Terceros','#4c8dff')}</div>
+      <div class="nums"><div><span>Ingresos</span><b>${moneyK(c.ing)}</b></div><div><span>Gastos</span><b>${moneyK(c.gas)}</b></div><div><span>Utilidad</span><b class="${c.util<0?'down':c.util>0?'up':''}">${moneyK(c.util)}</b></div></div>
+      ${c.meta ? `<div><div class="meta-t"><span>Meta del período ${moneyK(c.meta)}</span><b style="color:var(--txt)">${pct}%</b></div><div class="meta-bar"><i style="width:${pct}%;background:${pct>=100?'var(--ok)':'var(--gold)'}"></i></div></div>`
+               : `<div class="meta-t"><span>${u.es_propia?(periodo==='todo'?'Meta no aplica a "Todo"':'Sin meta mensual definida'):'Nicho de terceros: no se mide por ventas'}</span></div>`}
+      <div class="foot"><span class="estado" style="color:${sc}">${st}</span><span>📦 ${c.ps.length} productos · 💰 ${c.venta} en venta · ⚗️ ${c.lab.length} en lab</span></div></div>`;
+  }).join('') || '<div class="empty">No hay nichos.</div>';
+  document.querySelectorAll('.unit').forEach(x=>x.onclick=()=>formNicho(D.uni.find(u=>u.codigo===x.dataset.u)));
+
+  // ranking
+  const porProd={}; vs.forEach(v=>porProd[v.producto_id]=(porProd[v.producto_id]||0)+Number(v.total));
+  const rk=Object.entries(porProd).sort((a,b)=>b[1]-a[1]).slice(0,8), max=rk[0]?.[1]||1;
+  $('ranking').innerHTML = rk.length ? rk.map(([id,t],i)=>{ const p=D.prod.find(x=>x.id===id)||{}; return `<div class="rank"><span class="pos">${i+1}</span><span class="nm">${uniDe(p.unidad).icono} ${esc(p.nombre||'—')}</span><span class="bar"><i style="width:${t/max*100}%"></i></span><b style="min-width:80px;text-align:right">${moneyK(t)}</b></div>`; }).join('')
+    : '<div class="empty">Sin ventas en el período. Regístralas en 💰 Ventas.</div>';
+
+  // decisiones
+  const dp=D.dec.filter(d=>d.estado==='Pendiente').sort((a,b)=>(a.fecha_limite||'9')>(b.fecha_limite||'9')?1:-1).slice(0,6);
+  $('decRes').innerHTML = dp.length ? dp.map(d=>{ const venc=d.fecha_limite&&d.fecha_limite<hoyISO(); return `<div class="alert"><span class="i">${uniDe(d.unidad).icono}</span><div style="flex:1">${esc(d.titulo)}<small style="${venc?'color:var(--bad)':''}">${venc?'Vencida · ':''}${fmtDia(d.fecha_limite)}</small></div></div>`; }).join('')
+    : '<div class="empty">No hay decisiones pendientes.</div>';
+
+  alertas(); grafico();
+}
+
+function alertas(){
+  const hoy=hoyISO(), hace30=new Date(Date.now()-30*864e5).toISOString().slice(0,10), A=[];
+  D.lab.filter(l=>l.fecha_objetivo&&l.fecha_objetivo<hoy&&!['Publicado','Descartado'].includes(l.etapa))
+    .forEach(l=>A.push(['⏰',`Proyecto atrasado: ${l.codigo} · ${l.nombre}`,`Fecha objetivo ${fmtDia(l.fecha_objetivo)} · etapa ${l.etapa}`,3]));
+  D.dec.filter(d=>d.estado==='Pendiente'&&d.fecha_limite&&d.fecha_limite<hoy).forEach(d=>A.push(['⚖️',`Decisión vencida: ${d.titulo}`,`Límite ${fmtDia(d.fecha_limite)}`,3]));
+  D.prod.filter(p=>p.estado==='En venta').forEach(p=>{ if(!D.ventas.some(v=>v.producto_id===p.id&&v.fecha>=hace30)) A.push(['📉',`${p.nombre} está en venta y no vende hace 30 días`,'Revisa precio, publicidad o canal',2]); });
+  D.prod.filter(p=>p.estado==='En venta'&&p.precio==null).forEach(p=>A.push(['🏷️',`${p.nombre} está en venta sin precio registrado`,'Agrégalo en la ficha del producto (Centro)',1]));
+  const rg=rango(); D.uni.filter(u=>u.es_propia).forEach(u=>{ const c=calcUnidad(u,rg); if(c.util<0) A.push(['🔻',`${u.nombre} pierde dinero en el período`,`Gastos ${moneyK(c.gas)} vs ingresos ${moneyK(c.ing)}`,3]); });
+  D.uni.filter(u=>u.es_propia&&u.estado==='Activa'&&!(u.meta_ingresos_mes>0)).forEach(u=>A.push(['🎯',`${u.nombre} no tiene meta mensual`,'Defínela en 🧭 Nichos',1]));
+  D.uni.forEach(u=>{ if(!D.prod.some(p=>p.unidad===u.codigo)&&!D.lab.some(l=>l.unidad===u.codigo)) A.push(['🫙',`${u.nombre} no tiene productos ni proyectos`,'Crea uno en el Laboratorio o ciérralo',1]); });
+  const sinArch=D.prod.filter(p=>!D.arch.some(a=>a.producto_id===p.id)).length;
+  if (sinArch) A.push(['📁',`${sinArch} producto(s) sin archivos guardados`,'Sube la versión vigente de cada uno en el Centro',1]);
+  A.sort((a,b)=>b[3]-a[3]);
+  $('alertSub').textContent = A.length ? `${A.length} punto(s) por revisar, lo más urgente primero` : 'Todo en orden';
+  $('alertas').innerHTML = A.length ? A.map(([i,t,s])=>`<div class="alert"><span class="i">${i}</span><div>${esc(t)}<small>${esc(s)}</small></div></div>`).join('') : '<div class="empty">✅ Sin alertas.</div>';
+}
+
+function grafico(){
+  const el=$('chart'), W=el.clientWidth||600, H=220, pl=58, pb=26, pt=10, h=new Date();
+  const meses=[...Array(12)].map((_,i)=>{ const d=new Date(Date.UTC(h.getFullYear(),h.getMonth()-11+i,1)); return {k:d.toISOString().slice(0,7), l:d.toLocaleDateString('es-CO',{month:'short',timeZone:'UTC'}).replace('.','')}; });
+  meses.forEach(m=>{ m.ing=D.ventas.filter(v=>v.fecha.slice(0,7)===m.k).reduce((s,v)=>s+Number(v.total),0); m.gas=D.gastos.filter(g=>g.fecha.slice(0,7)===m.k).reduce((s,g)=>s+Number(g.valor),0); });
+  const max=Math.max(...meses.map(m=>m.ing),1), nice=Math.pow(10,Math.floor(Math.log10(max))), top=Math.ceil(max/nice)*nice;
+  const cw=(W-pl)/12, bw=Math.min(28,cw*0.55), y=v=>pt+(H-pt-pb)*(1-v/top);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ingresos por mes, últimos 12 meses">`;
+  for(let i=0;i<=4;i++){ const v=top*i/4, yy=y(v); s+=`<line x1="${pl}" x2="${W}" y1="${yy}" y2="${yy}" stroke="#25314f" stroke-width="1" ${i?'stroke-dasharray="2 4"':''}/><text x="${pl-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="#8e9bbd">${moneyK(v).replace(' mil','k')}</text>`; }
+  meses.forEach((m,i)=>{ const x=pl+cw*i+cw/2, yy=y(m.ing), hgt=H-pb-yy;
+    if (m.ing>0) s+=`<path d="M${x-bw/2},${H-pb} V${yy+4} Q${x-bw/2},${yy} ${x-bw/2+4},${yy} H${x+bw/2-4} Q${x+bw/2},${yy} ${x+bw/2},${yy+4} V${H-pb} Z" fill="${i===11?'#f2c94c':'#d4a017'}" opacity="${i===11?1:.8}"/>`;
+    if (W>=520 || i%2===1) s+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="11" fill="#8e9bbd">${m.l}</text><rect data-i="${i}" x="${pl+cw*i}" y="${pt}" width="${cw}" height="${H-pt-pb}" fill="transparent"/>`; });
+  s+='</svg><div class="tip hidden" id="tip"></div>';
+  el.innerHTML=s;
+  if (!meses.some(m=>m.ing)) el.insertAdjacentHTML('beforeend','<div class="empty" style="position:absolute;inset:30% 0 auto 0">Aún no hay ventas registradas</div>');
+  el.querySelectorAll('rect[data-i]').forEach(r=>{ r.onmouseenter=()=>{ const m=meses[+r.dataset.i], x=pl+cw*(+r.dataset.i)+cw/2, t=$('tip');
+    t.innerHTML=`<b>${m.l} ${m.k.slice(0,4)}</b>Ingresos ${money(m.ing)}<br>Gastos ${money(m.gas)}<br>Utilidad <span class="${m.ing-m.gas<0?'down':'up'}">${money(m.ing-m.gas)}</span>`;
+    t.style.left=(x/W*100)+'%'; t.style.top=y(m.ing)+'px'; t.classList.remove('hidden'); r.setAttribute('fill','rgba(255,255,255,.04)'); };
+    r.onmouseleave=()=>{ $('tip').classList.add('hidden'); r.setAttribute('fill','transparent'); }; });
+}
+window.addEventListener('resize', ()=>{ if(seccion==='resumen'&&D.uni.length) grafico(); });
+
+/* ===== NICHOS ===== */
+function nichos(){
+  const rg=rango('mes');
+  $('tNichos').innerHTML = `<thead><tr><th>Nicho</th><th>Tipo</th><th>Estado</th><th>Objetivo</th><th class="n">Meta mensual</th><th class="n">Ingresos este mes</th><th class="n">Productos</th><th class="n">En lab</th><th></th></tr></thead><tbody>`+
+    D.uni.map(u=>{ const c=calcUnidad(u,rg); return `<tr><td><b>${esc(u.icono)} ${esc(u.nombre)}</b><br><small style="color:var(--mut)">${esc(u.codigo)}</small></td><td>${u.es_propia?pill('Propio','#d4a017'):pill('Terceros','#4c8dff')}</td><td>${esc(u.estado)}</td><td style="max-width:260px;color:var(--mut)">${esc(u.objetivo||'—')}</td><td class="n">${u.meta_ingresos_mes>0?money(u.meta_ingresos_mes):'—'}</td><td class="n">${money(c.ing)}</td><td class="n">${c.ps.length}</td><td class="n">${c.lab.length}</td><td><button class="btn xs" data-ne="${u.codigo}">Editar</button></td></tr>`; }).join('')+'</tbody>';
+  document.querySelectorAll('[data-ne]').forEach(b=>b.onclick=()=>formNicho(D.uni.find(u=>u.codigo===b.dataset.ne)));
+}
+
+/* ===== MODAL ===== */
+let mSave=null, mDel=null;
+function form(titulo, campos, val, onSave, onDel){
+  $('mTitle').textContent=titulo; $('mMsg').textContent='';
+  $('mBody').innerHTML = campos.map(row=>`<div class="${row.length===3?'g3':row.length===2?'g2':''}">`+row.map(c=>{
+    const v = val?.[c.k] ?? c.def ?? '';
+    const inp = c.t==='select' ? `<select id="f_${c.k}">${c.op.map(o=>{const [a,l]=Array.isArray(o)?o:[o,o];return `<option value="${esc(a)}" ${String(a)===String(v)?'selected':''}>${esc(l)}</option>`}).join('')}</select>`
+      : c.t==='area' ? `<textarea id="f_${c.k}" rows="${c.rows||3}">${esc(v)}</textarea>`
+      : `<input id="f_${c.k}" type="${c.t||'text'}" value="${esc(v)}" ${c.dis?'disabled':''} ${c.ph?`placeholder="${esc(c.ph)}"`:''}>`;
+    return `<div class="field"><label>${esc(c.l)}</label>${inp}</div>`; }).join('')+'</div>').join('');
+  mSave=async()=>{ const o={}; campos.flat().forEach(c=>{ if(c.dis) return; let v=$('f_'+c.k).value; o[c.k]= c.t==='number' ? (v===''?null:Number(v)) : (v.trim?.()||null); });
+    const f=campos.flat().filter(c=>c.req&&!o[c.k]&&!c.dis); if(f.length) return $('mMsg').textContent='Completa: '+f.map(c=>c.l).join(', ');
+    try{ await onSave(o); $('modal').classList.add('hidden'); await cargar(); toast('Guardado'); }catch(e){ $('mMsg').textContent=String(e.message).includes('duplicate')?'Ese código ya existe.':(e.message||'Error'); } };
+  mDel=onDel; $('mBorrar').classList.toggle('hidden',!onDel); $('modal').classList.remove('hidden');
+}
+$('mGuardar').onclick=()=>mSave&&mSave(); $('mCancel').onclick=()=>$('modal').classList.add('hidden');
+$('mBorrar').onclick=async()=>{ if(!confirm('¿Eliminar? No se puede deshacer.')) return; try{ await mDel(); $('modal').classList.add('hidden'); await cargar(); toast('Eliminado'); }catch{} };
+
+function formNicho(u=null){
+  form(u?`Editar nicho · ${u.nombre}`:'Nuevo nicho de negocio', [
+    [{k:'codigo',l:'Código *',req:1,ph:'EJ: MODA',dis:!!u},{k:'icono',l:'Ícono (emoji)',def:'🏢'},{k:'color',l:'Color',t:'color',def:'#d4a017'}],
+    [{k:'nombre',l:'Nombre *',req:1}],
+    [{k:'es_propia',l:'Tipo',t:'select',op:[['true','Propio (se mide por ventas)'],['false','Terceros (operación)']],def:'true'},{k:'estado',l:'Estado',t:'select',op:['Activa','En exploración','Pausada','Cerrada'],def:'Activa'}],
+    [{k:'meta_ingresos_mes',l:'Meta de ingresos mensual (COP)',t:'number'},{k:'responsable',l:'Responsable'}],
+    [{k:'objetivo',l:'Objetivo estratégico'}],
+    [{k:'descripcion',l:'Descripción',t:'area',rows:2}],
+    [{k:'orden',l:'Orden en pantalla',t:'number',def:99}]
+  ], u?{...u, es_propia:String(u.es_propia)}:null, async v=>{
+    v.es_propia = v.es_propia==='true'; v.meta_ingresos_mes = v.meta_ingresos_mes||0; v.orden = v.orden??99;
+    if (u) await q(sb.from('unidades_negocio').update(v).eq('codigo',u.codigo));
+    else { v.codigo=v.codigo.toUpperCase().replace(/\s+/g,'_'); await q(sb.from('unidades_negocio').insert(v)); }
+    await log(u?'Nicho editado':'Nicho creado', v.nombre);
+  }, u ? async()=>{ if (D.prod.some(p=>p.unidad===u.codigo)||D.lab.some(l=>l.unidad===u.codigo)) { toast('Tiene productos o proyectos: reasígnalos o márcalo como Cerrado'); throw new Error('en uso'); } await q(sb.from('unidades_negocio').delete().eq('codigo',u.codigo)); } : null);
+}
+
+/* ===== VENTAS ===== */
+function ventas(){
+  const rg=rango(), l=D.ventas.filter(v=>enRango(v.fecha,rg)), tot=l.reduce((s,v)=>s+Number(v.total),0);
+  $('tVentas').innerHTML = `<thead><tr><th>Fecha</th><th>Producto</th><th>Nicho</th><th>Canal</th><th class="n">Cant.</th><th class="n">Valor unit.</th><th class="n">Total</th><th></th></tr></thead><tbody>`+
+    (l.length ? l.map(v=>{ const p=D.prod.find(x=>x.id===v.producto_id)||{}, u=uniDe(p.unidad); return `<tr><td>${fmtDia(v.fecha)}</td><td><b>${esc(p.nombre||'—')}</b></td><td>${esc(u.icono)} ${esc(u.nombre)}</td><td>${esc(v.canal||'—')}</td><td class="n">${v.cantidad}</td><td class="n">${money(v.valor_unitario)}</td><td class="n"><b>${money(v.total)}</b></td><td><button class="btn xs danger" data-vd="${v.id}">🗑</button></td></tr>`; }).join('')
+      + `<tr><td colspan="6" style="text-align:right;color:var(--mut)">TOTAL DEL PERÍODO</td><td class="n"><b style="color:var(--gold2)">${money(tot)}</b></td><td></td></tr>` : '<tr><td colspan="8" class="empty">Sin ventas en el período.</td></tr>')+'</tbody>';
+  document.querySelectorAll('[data-vd]').forEach(b=>b.onclick=async()=>{ if(!confirm('¿Eliminar esta venta?')) return; await q(sb.from('ventas').delete().eq('id',b.dataset.vd)); await cargar(); });
+}
+$('vProd').onchange=()=>{ const p=D.prod.find(x=>x.id===$('vProd').value); if(p?.precio!=null) $('vValor').value=p.precio; if(p?.plataforma_venta) $('vCanal').value=p.plataforma_venta; };
+$('vGuardar').onclick=async()=>{
+  const v={producto_id:$('vProd').value, fecha:$('vFecha').value, cantidad:parseInt($('vCant').value)||1, valor_unitario:Number($('vValor').value), canal:$('vCanal').value.trim()||null};
+  if(!v.producto_id||!v.fecha||!(v.valor_unitario>=0)||$('vValor').value==='') return toast('Completa producto, fecha y valor');
+  await q(sb.from('ventas').insert(v)); const p=D.prod.find(x=>x.id===v.producto_id);
+  await log('Venta', `${p?.codigo} · ${v.cantidad} × ${money(v.valor_unitario)}`, v.producto_id);
+  $('vValor').value=''; $('vCant').value=1; await cargar(); toast('Venta registrada');
+};
+
+/* ===== GASTOS ===== */
+function gastos(){
+  const rg=rango(), l=D.gastos.filter(g=>enRango(g.fecha,rg)), tot=l.reduce((s,g)=>s+Number(g.valor),0);
+  $('tGastos').innerHTML = `<thead><tr><th>Fecha</th><th>Concepto</th><th>Nicho</th><th>Categoría</th><th class="n">Valor</th><th></th></tr></thead><tbody>`+
+    (l.length ? l.map(g=>{ const u=uniDe(g.unidad); return `<tr><td>${fmtDia(g.fecha)}</td><td><b>${esc(g.concepto)}</b></td><td>${esc(u.icono)} ${esc(u.nombre)}</td><td>${esc(g.categoria)}</td><td class="n"><b>${money(g.valor)}</b></td><td><button class="btn xs danger" data-gd="${g.id}">🗑</button></td></tr>`; }).join('')
+      + `<tr><td colspan="4" style="text-align:right;color:var(--mut)">TOTAL DEL PERÍODO</td><td class="n"><b style="color:var(--bad)">${money(tot)}</b></td><td></td></tr>` : '<tr><td colspan="6" class="empty">Sin gastos en el período.</td></tr>')+'</tbody>';
+  document.querySelectorAll('[data-gd]').forEach(b=>b.onclick=async()=>{ if(!confirm('¿Eliminar este gasto?')) return; await q(sb.from('gastos').delete().eq('id',b.dataset.gd)); await cargar(); });
+}
+$('gGuardar').onclick=async()=>{
+  const g={concepto:$('gConc').value.trim(), unidad:$('gUni').value, fecha:$('gFecha').value, categoria:$('gCat').value, valor:Number($('gValor').value)};
+  if(!g.concepto||!g.unidad||!g.fecha||$('gValor').value==='') return toast('Completa concepto, nicho, fecha y valor');
+  await q(sb.from('gastos').insert(g)); await log('Gasto', `${g.concepto} · ${money(g.valor)}`);
+  $('gConc').value=''; $('gValor').value=''; await cargar(); toast('Gasto registrado');
+};
+
+/* ===== DECISIONES ===== */
+const COL_DEC={'Pendiente':'#ff9800','Decidida':'#4c8dff','Ejecutada':'#2ecc71','Descartada':'#607d8b'};
+function decisiones(){
+  const ord={'Pendiente':0,'Decidida':1,'Ejecutada':2,'Descartada':3}, hoy=hoyISO();
+  const l=[...D.dec].sort((a,b)=>ord[a.estado]-ord[b.estado]||((a.fecha_limite||'9')>(b.fecha_limite||'9')?1:-1));
+  $('decisiones').innerHTML = l.length ? l.map(d=>{ const u=uniDe(d.unidad), venc=d.estado==='Pendiente'&&d.fecha_limite&&d.fecha_limite<hoy; return `
+    <div class="dec" style="${venc?'border-color:var(--bad)':''}"><div class="row" style="justify-content:space-between">${pill(d.estado,COL_DEC[d.estado])}<span class="tag">${esc(u.icono)} ${esc(u.nombre)}</span></div>
+      <h4>${esc(d.titulo)}</h4>${d.detalle?`<p>${esc(d.detalle)}</p>`:''}
+      ${d.decision?`<p style="color:var(--txt)"><b style="color:var(--gold2)">Decisión:</b> ${esc(d.decision)}</p>`:''}
+      <div class="foot"><span style="font-size:12px;${venc?'color:var(--bad);font-weight:700':'color:var(--mut)'}">${venc?'⏰ Vencida · ':'📅 '}${fmtDia(d.fecha_limite)}</span><button class="btn xs" data-de="${d.id}">Editar</button></div></div>`; }).join('')
+    : '<div class="empty" style="grid-column:1/-1">Sin decisiones registradas.</div>';
+  document.querySelectorAll('[data-de]').forEach(b=>b.onclick=()=>formDec(D.dec.find(d=>d.id===b.dataset.de)));
+}
+function formDec(d=null){
+  form(d?'Editar decisión':'Nueva decisión', [
+    [{k:'titulo',l:'¿Qué hay que decidir? *',req:1}],
+    [{k:'unidad',l:'Nicho',t:'select',op:[['','— General —'],...D.uni.map(u=>[u.codigo,u.icono+' '+u.nombre])]},{k:'estado',l:'Estado',t:'select',op:['Pendiente','Decidida','Ejecutada','Descartada'],def:'Pendiente'},{k:'fecha_limite',l:'Fecha límite',t:'date'}],
+    [{k:'detalle',l:'Contexto / opciones',t:'area',rows:3}],
+    [{k:'decision',l:'Decisión tomada',t:'area',rows:2}]
+  ], d, async v=>{ if(d) await q(sb.from('decisiones').update(v).eq('id',d.id)); else await q(sb.from('decisiones').insert(v)); await log(d?'Decisión actualizada':'Decisión creada', v.titulo); },
+  d ? async()=>q(sb.from('decisiones').delete().eq('id',d.id)) : null);
+}
+
+ir('resumen');
+</script>
+</body>
+</html>
