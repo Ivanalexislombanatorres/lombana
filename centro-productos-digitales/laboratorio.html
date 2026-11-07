@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Laboratorio · Lombana Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b1020;--panel:#121a30;--panel2:#18223d;--line:#25314f;--txt:#e8ecf6;--mut:#8e9bbd;--gold:#d4a017;--gold2:#f2c94c;--ok:#2ecc71;--bad:#ef5350;--blue:#4c8dff;--lab:#7c4dff;--r:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:14px;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--lab)}
+  a{color:var(--gold2)}
+  .btn{border-radius:10px;padding:10px 16px;font-weight:600;font-size:14px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);transition:.15s;white-space:nowrap}
+  .btn:hover{border-color:var(--lab)}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1300;border:0}
+  .btn.lab{background:linear-gradient(135deg,#6a3df5,#9c7bff);color:#fff;border:0}
+  .btn.danger{color:var(--bad)} .btn.sm{padding:6px 10px;font-size:12px} .btn.xs{padding:3px 7px;font-size:11px;border-radius:6px}
+  .hidden{display:none!important}
+  .row{display:flex;gap:10px;align-items:center} .wrap{flex-wrap:wrap}
+  .msg{font-size:13px;margin-top:12px;min-height:18px} .msg.err{color:var(--bad)} .msg.ok{color:var(--ok)}
+  .field{margin-bottom:12px} .field label{display:block;font-size:12px;color:var(--mut);margin-bottom:6px;font-weight:600}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6a3df5,#9c7bff);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;flex-shrink:0}
+  .logo h1{font-size:17px;line-height:1.2} .logo small{color:var(--mut);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .tag{white-space:nowrap;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--panel2);color:var(--mut);letter-spacing:.03em}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block}
+  .empty{text-align:center;color:var(--mut);padding:40px}
+
+  #login{display:grid;place-items:center;min-height:100vh;padding:20px;background:radial-gradient(1000px 500px at 20% 0%,#2a1d55 0%,transparent 60%),radial-gradient(800px 400px at 100% 100%,#3a2a05 0%,transparent 55%),var(--bg)}
+  .login-card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:34px}
+  .login-card .logo{margin-bottom:24px}
+
+  #app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+  aside.side{background:var(--panel);border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+  aside.side .logo{padding:0 6px 20px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .nav-t{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:10px 8px 6px}
+  .nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;cursor:pointer;color:var(--txt);border:1px solid transparent;text-decoration:none}
+  .nav:hover{background:var(--panel2)} .nav.on{background:var(--panel2);border-color:var(--lab)}
+  .nav .ic{width:22px;text-align:center} .nav .n{margin-left:auto;font-size:12px;color:var(--mut);background:var(--bg);padding:2px 8px;border-radius:20px}
+  .side-foot{margin-top:18px;padding:12px 8px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+  main{padding:24px 28px;min-width:0}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+  .head h2{font-size:24px} .head p{color:var(--mut);font-size:13px;margin-top:2px}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lab)}
+  .kpi span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .kpi b{display:block;font-size:26px;margin-top:6px;font-weight:800} .kpi em{font-style:normal;font-size:12px;color:var(--mut)}
+
+  /* KANBAN */
+  .kanban{display:grid;grid-template-columns:repeat(6,minmax(170px,1fr));gap:12px;overflow-x:auto;padding-bottom:10px}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-height:200px;display:flex;flex-direction:column;gap:10px}
+  .col-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;padding:2px 4px 8px;border-bottom:2px solid var(--line)}
+  .pc{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:.15s}
+  .pc:hover{border-color:var(--lab)}
+  .pc h4{font-size:14px;margin:6px 0 4px;line-height:1.3} .pc .meta{font-size:11px;color:var(--mut)}
+  .prog{height:5px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0 6px} .prog i{display:block;height:100%;background:var(--lab)}
+  .pc .bt{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+
+  /* LISTAS */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+  .item h4{font-size:15px} .item p{font-size:13px;color:var(--mut);line-height:1.45;white-space:pre-wrap}
+  .item .k{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-top:4px}
+  .item .foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:auto;gap:8px;flex-wrap:wrap}
+  .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap} .toolbar input{max-width:320px} .toolbar select{max-width:200px}
+  .score{font-size:12px;font-weight:700}
+  pre.prompt{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;max-height:160px;overflow:auto;white-space:pre-wrap;color:#cfd8ee}
+
+  /* PROBADOR */
+  .studio{display:grid;grid-template-columns:1fr 1fr;gap:14px;height:calc(100vh - 230px);min-height:480px}
+  .pane{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
+  .pane-h{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut);flex-wrap:wrap}
+  #code{flex:1;border:0;border-radius:0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.55;resize:none;background:#0a0f1d;tab-size:2;white-space:pre}
+  .frame-wrap{flex:1;background:#fff;display:flex;justify-content:center;overflow:auto}
+  #preview{border:0;width:100%;height:100%;background:#fff;transition:width .2s}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:var(--panel);border:0;color:var(--mut);padding:5px 9px;font-size:12px} .seg button.on{background:var(--panel2);color:#b9a2ff}
+  .studio-bar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .studio-bar select,.studio-bar input{max-width:240px}
+
+  /* DRAWER */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(700px,100%);background:var(--panel);border-left:1px solid var(--line);z-index:11;display:flex;flex-direction:column}
+  .drawer-h{padding:20px 24px 0;border-bottom:1px solid var(--line)}
+  .drawer-h .t{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .drawer-h h2{font-size:20px;margin-top:8px}
+  .stages{display:flex;gap:4px;margin-top:14px;flex-wrap:wrap}
+  .stages button{flex:1;min-width:80px;background:var(--panel2);border:1px solid var(--line);color:var(--mut);padding:7px 6px;font-size:11px;font-weight:700;border-radius:8px}
+  .stages button.done{color:#b9a2ff;border-color:#4a3a8a} .stages button.on{background:var(--lab);color:#fff;border-color:var(--lab)}
+  .tabs{display:flex;gap:4px;margin-top:14px}
+  .tabs button{background:none;border:0;color:var(--mut);padding:10px 14px;font-size:14px;font-weight:600;border-bottom:2px solid transparent}
+  .tabs button.on{color:#b9a2ff;border-color:var(--lab)}
+  .drawer-b{padding:20px 24px;overflow:auto;flex:1}
+  .li{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+  .li .tx{flex:1;min-width:0} .li .tx small{display:block;color:var(--mut);font-size:12px}
+  .li.done .tx b{text-decoration:line-through;color:var(--mut)}
+  .chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);background:none;color:#fff;font-size:12px;flex-shrink:0}
+  .chk.on{background:var(--ok);border-color:var(--ok)} .chk.mid{background:var(--blue);border-color:var(--blue)}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px} .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .addrow{display:flex;gap:8px;margin-bottom:14px}
+  .banner{background:linear-gradient(135deg,rgba(124,77,255,.15),rgba(212,160,23,.12));border:1px solid #4a3a8a;border-radius:12px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px}
+
+  .modal{position:fixed;inset:0;display:grid;place-items:center;z-index:20;padding:20px;background:rgba(0,0,0,.5)}
+  .modal-c{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:640px;max-height:92vh;overflow:auto}
+  .modal-c h2{margin-bottom:16px;font-size:18px}
+  #toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .toast{background:var(--panel2);border:1px solid var(--lab);padding:12px 18px;border-radius:10px;font-size:14px}
+  .menu-btn{display:none}
+  @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.studio{grid-template-columns:1fr;height:auto}.pane{height:520px}}
+  @media(max-width:860px){
+    #app{grid-template-columns:1fr} aside.side{position:fixed;left:0;z-index:15;width:270px;transform:translateX(-100%);transition:.2s}
+    aside.side.open{transform:none} .menu-btn{display:inline-block} main{padding:18px 16px}
+    .kpis{grid-template-columns:repeat(2,1fr)} .g2,.g3{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="login-card">
+    <div class="logo"><div class="logo-ico">⚗</div><div><small>Lombana Studio</small><h1>Laboratorio de Productos</h1></div></div>
+    <div class="field"><label>Correo</label><input id="email" type="email" autocomplete="email"></div>
+    <div class="field"><label>Contraseña</label><input id="pass" type="password" autocomplete="current-password"></div>
+    <button class="btn lab" style="width:100%" id="btnLogin">Ingresar</button>
+    <div class="msg" id="loginMsg"></div>
+    <p style="font-size:12px;color:var(--mut);margin-top:10px">¿Aún sin cuenta? Créala en el <a href="./">Centro de Productos</a>; la sesión es la misma.</p>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+  <aside class="side" id="side">
+    <div class="logo"><div class="logo-ico">⚗</div><div><small>Lombana Studio</small><h1>Laboratorio</h1></div></div>
+    <div class="nav-t">Laboratorio</div>
+    <div class="nav on" data-s="tablero"><span class="ic">🧪</span>Tablero de desarrollo<span class="n" id="nProy">0</span></div>
+    <div class="nav" data-s="ideas"><span class="ic">💡</span>Banco de ideas<span class="n" id="nIdeas">0</span></div>
+    <div class="nav" data-s="experimentos"><span class="ic">🔬</span>Experimentos<span class="n" id="nExp">0</span></div>
+    <div class="nav" data-s="prompts"><span class="ic">🧠</span>Biblioteca de prompts<span class="n" id="nPrompts">0</span></div>
+    <div class="nav" data-s="probador"><span class="ic">🖥️</span>Probador HTML<span class="n" id="nHtml">0</span></div>
+    <div class="nav-t">Ir a</div>
+    <a class="nav" href="presidencia.html"><span class="ic">♛</span>Presidencia</a>
+    <a class="nav" href="index.html"><span class="ic">🗄️</span>Centro de Productos</a>
+    <div class="side-foot"><div id="userEmail" style="margin-bottom:8px;word-break:break-all"></div><button class="btn sm" id="btnLogout">Cerrar sesión</button></div>
+  </aside>
+
+  <main>
+    <div class="head">
+      <div class="row"><button class="btn sm menu-btn" id="btnMenu">☰</button><div><h2 id="titulo"></h2><p id="subtitulo"></p></div></div>
+      <button class="btn lab" id="btnNuevo">+ Nuevo</button>
+    </div>
+
+    <!-- TABLERO -->
+    <section id="s-tablero">
+      <div class="kpis">
+        <div class="kpi"><span>Proyectos activos</span><b id="kAct">0</b><em id="kAlta"></em></div>
+        <div class="kpi"><span>En construcción</span><b id="kCons">0</b><em>etapa Construcción</em></div>
+        <div class="kpi"><span>Tareas pendientes</span><b id="kTar">0</b><em id="kTarH"></em></div>
+        <div class="kpi"><span>Pruebas</span><b id="kPru">0</b><em id="kPruF"></em></div>
+        <div class="kpi"><span>Publicados</span><b id="kPub">0</b><em>enviados al Centro</em></div>
+      </div>
+      <div class="kanban" id="kanban"></div>
+    </section>
+
+    <section id="s-ideas" class="hidden">
+      <div class="toolbar"><input id="qIdeas" placeholder="Buscar ideas…"><select id="fIdeas"><option value="">Todos los estados</option><option>Nueva</option><option>Evaluando</option><option>Convertida</option><option>Descartada</option></select><span style="color:var(--mut);font-size:12px">Ordenadas por puntaje: impacto alto + esfuerzo bajo primero</span></div>
+      <div class="cards" id="ideas"></div>
+    </section>
+
+    <section id="s-experimentos" class="hidden">
+      <div class="toolbar"><input id="qExp" placeholder="Buscar experimentos…"><select id="fExp"><option value="">Todos los estados</option><option>Planeado</option><option>En curso</option><option>Exitoso</option><option>Fallido</option></select></div>
+      <div class="cards" id="experimentos"></div>
+    </section>
+
+    <section id="s-prompts" class="hidden">
+      <div class="toolbar"><input id="qPrompts" placeholder="Buscar en títulos y contenido…"><select id="fPrompts"><option value="">Todas las categorías</option></select></div>
+      <div class="cards" id="prompts"></div>
+    </section>
+
+    <section id="s-probador" class="hidden">
+      <div class="studio-bar">
+        <select id="pProy"><option value="">— Sin proyecto —</option></select>
+        <input id="pTitulo" placeholder="Título de la página" value="Mi página">
+        <select id="pVers"><option value="">Versiones guardadas…</option></select>
+        <button class="btn lab sm" id="pGuardar">💾 Guardar versión</button>
+        <button class="btn sm" id="pEnviar">🚀 Enviar al Centro</button>
+        <button class="btn sm" id="pDescargar">⬇ Descargar .html</button>
+        <button class="btn sm" id="pAbrir">↗ Abrir en pestaña</button>
+        <label class="btn sm" style="cursor:pointer">📂 Abrir archivo<input type="file" id="pFile" accept=".html,.htm,.txt" hidden></label>
+      </div>
+      <div class="studio">
+        <div class="pane">
+          <div class="pane-h">CÓDIGO HTML · <span id="pInfo">sin guardar</span><span style="margin-left:auto"></span><label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pAuto" checked style="width:auto"> Vista automática</label><button class="btn xs" id="pRun">▶ Ejecutar</button></div>
+          <textarea id="code" spellcheck="false"></textarea>
+        </div>
+        <div class="pane">
+          <div class="pane-h">VISTA PREVIA<span style="margin-left:auto"></span><div class="seg" id="pSize"><button class="on" data-w="100%">🖥 Escritorio</button><button data-w="820px">Tablet</button><button data-w="390px">📱 Celular</button></div></div>
+          <div class="frame-wrap"><iframe id="preview" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="Vista previa"></iframe></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- DRAWER PROYECTO -->
+<div class="overlay hidden" id="ov"></div>
+<aside class="drawer hidden" id="drawer">
+  <div class="drawer-h">
+    <div class="t">
+      <div><div class="row wrap"><span class="tag" id="dCod"></span><span id="dTipo"></span><span id="dPrio"></span></div><h2 id="dNom"></h2></div>
+      <div class="row"><button class="btn sm" id="dEditar">Editar</button><button class="btn sm" id="dCerrar">✕</button></div>
+    </div>
+    <div class="stages" id="dStages"></div>
+    <div class="tabs"><button class="on" data-t="resumen">Resumen</button><button data-t="tareas">Tareas</button><button data-t="pruebas">Pruebas</button><button data-t="html">Páginas HTML</button></div>
+  </div>
+  <div class="drawer-b">
+    <div id="t-resumen"></div>
+    <div id="t-tareas" class="hidden">
+      <div class="addrow"><input id="nTarea" placeholder="Nueva tarea…"><button class="btn lab sm" id="addTarea">Agregar</button></div>
+      <div id="tareas"></div>
+    </div>
+    <div id="t-pruebas" class="hidden">
+      <div class="addrow"><input id="nPrueba" placeholder="Qué hay que probar…"><button class="btn lab sm" id="addPrueba">Agregar</button></div>
+      <div id="pruebas"></div>
+    </div>
+    <div id="t-html" class="hidden">
+      <button class="btn lab sm" id="dNuevoHtml" style="margin-bottom:14px">+ Nueva página en el probador</button>
+      <div id="htmls"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MODAL GENÉRICO -->
+<div class="modal hidden" id="modal"><div class="modal-c"><h2 id="mTitle"></h2><div id="mBody"></div>
+  <div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn danger" id="mBorrar">Eliminar</button><div class="row"><button class="btn" id="mCancel">Cancelar</button><button class="btn lab" id="mGuardar">Guardar</button></div></div>
+  <div class="msg err" id="mMsg"></div></div></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://lzgakoyqczjhpqzlfsxc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_uzeDMHyqzbP76CEavyEoyA_PZWRNCkA';
+const BUCKET = 'productos-digitales';
+const ETAPAS = ['Idea','Diseño','Construcción','Pruebas','Lanzamiento','Publicado'];
+const COL_ETAPA = {'Idea':'#8e9bbd','Diseño':'#ec407a','Construcción':'#4c8dff','Pruebas':'#ff9800','Lanzamiento':'#f2c94c','Publicado':'#2ecc71','Descartado':'#607d8b'};
+const COL_PRIO = {'Alta':'#ef5350','Media':'#f2c94c','Baja':'#8e9bbd'};
+const COL_EXP = {'Planeado':'#8e9bbd','En curso':'#4c8dff','Exitoso':'#2ecc71','Fallido':'#ef5350'};
+const COL_IDEA = {'Nueva':'#4c8dff','Evaluando':'#f2c94c','Convertida':'#2ecc71','Descartada':'#607d8b'};
+const PLANTILLA = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi página</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;background:#0b1020;color:#e8ecf6;display:grid;place-items:center;min-height:100vh}
+  .card{background:#121a30;border:1px solid #25314f;border-radius:16px;padding:40px;text-align:center;max-width:480px}
+  h1{color:#f2c94c;margin:0 0 10px}
+  button{background:#d4a017;border:0;border-radius:10px;padding:12px 20px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hola desde el Laboratorio</h1>
+    <p>Edita este código a la izquierda y mira el resultado aquí.</p>
+    <button onclick="this.textContent='¡Funciona! ✔'">Probar</button>
+  </div>
+</body>
+</html>`;
+
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+let D = {uni:[], tipos:[], proy:[], tareas:[], pruebas:[], ideas:[], exp:[], prompts:[], html:[], productos:[]};
+let seccion='tablero', actual=null, htmlActual=null;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtFecha = d => d ? new Date(d).toLocaleString('es-CO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+const fmtDia = d => d ? new Date(d+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const limpio = n => String(n).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_');
+const pill = (t,c) => `<span class="pill" style="background:${c}22;color:${c}">${esc(t)}</span>`;
+const tipoDe = c => D.tipos.find(t=>t.codigo===c) || {nombre:c||'—',icono:'📦',color:'#757575'};
+const chipTipo = c => { const t=tipoDe(c); return pill(`${t.icono} ${t.nombre}`, t.color); };
+function toast(t){ let w=$('toasts'); if(!w){ w=document.createElement('div'); w.id='toasts'; document.body.appendChild(w); } const d=document.createElement('div'); d.className='toast'; d.textContent=t; w.appendChild(d); setTimeout(()=>d.remove(),3000); }
+async function log(accion, detalle, producto_id=null){ await sb.from('registro').insert({accion:'LAB · '+accion, detalle, producto_id}); }
+async function q(p){ const r = await p; if (r.error){ toast('Error: '+r.error.message); throw r.error; } return r.data; }
+
+/* ===== AUTH ===== */
+$('btnLogin').onclick = async () => {
+  const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('pass').value });
+  if (error){ $('loginMsg').textContent = error.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : error.message; $('loginMsg').className='msg err'; }
+};
+$('pass').onkeydown = e => { if (e.key==='Enter') $('btnLogin').click(); };
+$('btnLogout').onclick = () => sb.auth.signOut();
+sb.auth.onAuthStateChange((_e, s) => {
+  if (s){ $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('userEmail').textContent=s.user.email; if(!D.tipos.length) cargar(); }
+  else { $('app').classList.add('hidden'); $('login').classList.remove('hidden'); }
+});
+
+/* ===== CARGA ===== */
+async function cargar(){
+  const r = await Promise.all([
+    sb.from('unidades_negocio').select('*').order('orden'),
+    sb.from('tipos_producto').select('*').order('orden'),
+    sb.from('lab_proyectos').select('*').order('updated_at',{ascending:false}),
+    sb.from('lab_tareas').select('*').order('created_at'),
+    sb.from('lab_pruebas').select('*').order('created_at'),
+    sb.from('lab_ideas').select('*').order('created_at',{ascending:false}),
+    sb.from('lab_experimentos').select('*').order('updated_at',{ascending:false}),
+    sb.from('lab_prompts').select('*').order('updated_at',{ascending:false}),
+    sb.from('lab_html').select('id,proyecto_id,titulo,version,notas,created_at').order('created_at',{ascending:false}),
+    sb.from('productos').select('id,codigo,nombre,tipo').order('nombre')
+  ]);
+  const err = r.find(x=>x.error); if (err) return toast('Error: '+err.error.message);
+  [D.uni,D.tipos,D.proy,D.tareas,D.pruebas,D.ideas,D.exp,D.prompts,D.html,D.productos] = r.map(x=>x.data||[]);
+  contadores(); pintar(); if (actual){ actual=D.proy.find(p=>p.id===actual.id); actual ? pintarDrawer() : cerrar(); }
+}
+function contadores(){
+  $('nProy').textContent = D.proy.filter(p=>!['Publicado','Descartado'].includes(p.etapa)).length;
+  $('nIdeas').textContent = D.ideas.filter(i=>['Nueva','Evaluando'].includes(i.estado)).length;
+  $('nExp').textContent = D.exp.length; $('nPrompts').textContent = D.prompts.length; $('nHtml').textContent = D.html.length;
+  const opts = '<option value="">— Sin proyecto —</option>'+D.proy.map(p=>`<option value="${p.id}">${esc(p.codigo)} · ${esc(p.nombre)}</option>`).join('');
+  const v=$('pProy').value; $('pProy').innerHTML=opts; $('pProy').value=v;
+  const cats=[...new Set(D.prompts.map(p=>p.categoria))].sort(), fc=$('fPrompts').value;
+  $('fPrompts').innerHTML='<option value="">Todas las categorías</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join(''); $('fPrompts').value=fc;
+  versionesSelect();
+}
+
+/* ===== NAVEGACIÓN ===== */
+const TXT = {
+  tablero:['🧪 Tablero de desarrollo','Tus productos en construcción, de la idea al lanzamiento','+ Nuevo proyecto'],
+  ideas:['💡 Banco de ideas','Captura ideas y conviértelas en proyectos','+ Nueva idea'],
+  experimentos:['🔬 Experimentos','Prueba hipótesis antes de invertir tiempo','+ Nuevo experimento'],
+  prompts:['🧠 Biblioteca de prompts','Tus prompts maestros, listos para copiar','+ Nuevo prompt'],
+  probador:['🖥️ Probador HTML','Escribe o pega código, míralo en vivo y guárdalo por versiones','+ Página en blanco']
+};
+document.querySelectorAll('.nav[data-s]').forEach(n=>n.onclick=()=>ir(n.dataset.s));
+function ir(s){
+  seccion=s; $('side').classList.remove('open');
+  document.querySelectorAll('.nav[data-s]').forEach(n=>n.classList.toggle('on', n.dataset.s===s));
+  Object.keys(TXT).forEach(k=>$('s-'+k).classList.toggle('hidden', k!==s));
+  [$('titulo').textContent, $('subtitulo').textContent, $('btnNuevo').textContent] = TXT[s];
+  pintar();
+}
+$('btnMenu').onclick=()=>$('side').classList.toggle('open');
+$('btnNuevo').onclick=()=>({tablero:()=>formProyecto(), ideas:()=>formIdea(), experimentos:()=>formExp(), prompts:()=>formPrompt(), probador:()=>nuevaPagina()})[seccion]();
+function pintar(){ ({tablero:tablero, ideas:ideas, experimentos:experimentos, prompts:prompts, probador:()=>{}})[seccion](); }
+
+/* ===== MODAL GENÉRICO ===== */
+let mSave=null, mDel=null;
+function form(titulo, campos, valores, onSave, onDel){
+  $('mTitle').textContent=titulo; $('mMsg').textContent='';
+  $('mBody').innerHTML = campos.map(row=>{
+    const cls = row.length===3?'g3':row.length===2?'g2':'';
+    return `<div class="${cls}">`+row.map(c=>{
+      const v = valores?.[c.k] ?? c.def ?? '';
+      let inp;
+      if (c.t==='select') inp=`<select id="f_${c.k}">${c.op.map(o=>{const [val,lab]=Array.isArray(o)?o:[o,o];return `<option value="${esc(val)}" ${String(val)===String(v)?'selected':''}>${esc(lab)}</option>`}).join('')}</select>`;
+      else if (c.t==='area') inp=`<textarea id="f_${c.k}" rows="${c.rows||3}" ${c.mono?'style="font-family:JetBrains Mono,monospace;font-size:12px"':''}>${esc(v)}</textarea>`;
+      else inp=`<input id="f_${c.k}" type="${c.t||'text'}" value="${esc(v)}" ${c.ph?`placeholder="${esc(c.ph)}"`:''} ${c.list?`list="${c.list}"`:''}>`;
+      return `<div class="field"><label>${esc(c.l)}</label>${inp}</div>`;
+    }).join('')+'</div>';
+  }).join('');
+  mSave=async()=>{ const out={}; campos.flat().forEach(c=>{ let v=$('f_'+c.k).value; if(c.t==='number') v=v===''?null:Number(v); else v=typeof v==='string'?(v.trim()||null):v; out[c.k]=v; });
+    const faltan=campos.flat().filter(c=>c.req && !out[c.k]); if(faltan.length) return $('mMsg').textContent='Completa: '+faltan.map(c=>c.l).join(', ');
+    try{ await onSave(out); $('modal').classList.add('hidden'); await cargar(); toast('Guardado'); }catch(e){ $('mMsg').textContent=e.message?.includes('duplicate')?'Ese código ya existe.':(e.message||'Error'); } };
+  mDel=onDel; $('mBorrar').classList.toggle('hidden',!onDel);
+  $('modal').classList.remove('hidden');
+}
+$('mGuardar').onclick=()=>mSave&&mSave();
+$('mCancel').onclick=()=>$('modal').classList.add('hidden');
+$('mBorrar').onclick=async()=>{ if(!confirm('¿Eliminar? No se puede deshacer.')) return; await mDel(); $('modal').classList.add('hidden'); await cargar(); toast('Eliminado'); };
+const tiposOp = () => D.tipos.map(t=>[t.codigo,`${t.icono} ${t.nombre}`]);
+const uniOp = () => D.uni.map(u=>[u.codigo,`${u.icono} ${u.nombre}`]);
+const uniDe = c => D.uni.find(u=>u.codigo===c) || {nombre:'Sin nicho',icono:'❔'};
+const proyOp = () => [['','— Ninguno —'],...D.proy.map(p=>[p.id,`${p.codigo} · ${p.nombre}`])];
+
+/* ===== TABLERO ===== */
+function tablero(){
+  const act = D.proy.filter(p=>!['Publicado','Descartado'].includes(p.etapa)), ids=new Set(act.map(p=>p.id));
+  const tar = D.tareas.filter(t=>ids.has(t.proyecto_id)), pru = D.pruebas.filter(t=>ids.has(t.proyecto_id));
+  $('kAct').textContent=act.length; $('kAlta').textContent=act.filter(p=>p.prioridad==='Alta').length+' de prioridad alta';
+  $('kCons').textContent=act.filter(p=>p.etapa==='Construcción').length;
+  $('kTar').textContent=tar.filter(t=>t.estado!=='Hecha').length; $('kTarH').textContent=tar.filter(t=>t.estado==='Hecha').length+' hechas';
+  $('kPru').textContent=pru.length; $('kPruF').textContent=`${pru.filter(p=>p.resultado==='Aprobada').length} aprobadas · ${pru.filter(p=>p.resultado==='Fallida').length} fallidas`;
+  $('kPub').textContent=D.proy.filter(p=>p.etapa==='Publicado').length;
+  $('kanban').innerHTML = ETAPAS.map(e=>{
+    const ps = D.proy.filter(p=>p.etapa===e);
+    return `<div class="col"><div class="col-h" style="border-color:${COL_ETAPA[e]}"><span style="color:${COL_ETAPA[e]}">● ${e}</span><span class="tag">${ps.length}</span></div>`+
+      (ps.length ? ps.map(cardProy).join('') : '<div style="color:var(--mut);font-size:12px;text-align:center;padding:20px 0">Vacío</div>')+'</div>';
+  }).join('');
+  document.querySelectorAll('.pc').forEach(c=>c.onclick=ev=>{ if(ev.target.dataset.mv) return; abrir(c.dataset.id); });
+  document.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>mover(b.dataset.id, +b.dataset.mv));
+}
+function avance(id){ const t=D.tareas.filter(x=>x.proyecto_id===id); return t.length?Math.round(t.filter(x=>x.estado==='Hecha').length/t.length*100):0; }
+function cardProy(p){
+  const t=D.tareas.filter(x=>x.proyecto_id===p.id), av=avance(p.id), i=ETAPAS.indexOf(p.etapa);
+  return `<div class="pc" data-id="${p.id}" style="border-left:3px solid ${esc(p.color)}">
+    <div class="row" style="justify-content:space-between"><span class="tag">${esc(p.codigo)}</span>${pill(p.prioridad,COL_PRIO[p.prioridad])}</div>
+    <h4>${esc(p.nombre)}</h4><div class="meta">${esc(uniDe(p.unidad).icono)} ${esc(uniDe(p.unidad).nombre)}</div><div class="meta">${tipoDe(p.tipo).icono} ${esc(tipoDe(p.tipo).nombre)}${p.fecha_objetivo?' · 📅 '+fmtDia(p.fecha_objetivo):''}</div>
+    <div class="prog"><i style="width:${av}%"></i></div>
+    <div class="bt"><span class="meta">${t.filter(x=>x.estado==='Hecha').length}/${t.length} tareas · ${av}%</span>
+      <span class="row" style="gap:4px">${i>0?`<button class="btn xs" data-mv="-1" data-id="${p.id}">◀</button>`:''}${i<ETAPAS.length-2?`<button class="btn xs" data-mv="1" data-id="${p.id}">▶</button>`:''}</span></div></div>`;
+}
+async function mover(id, d){
+  const p=D.proy.find(x=>x.id===id), n=ETAPAS[ETAPAS.indexOf(p.etapa)+d]; if(!n) return;
+  if (n==='Publicado') return abrir(id);
+  await q(sb.from('lab_proyectos').update({etapa:n}).eq('id',id)); await log('Etapa', `${p.codigo} → ${n}`); await cargar();
+}
+function formProyecto(p=null){
+  form(p?'Editar proyecto':'Nuevo proyecto del laboratorio', [
+    [{k:'codigo',l:'Código *',req:1,ph:'LAB-NUEVO'},{k:'tipo',l:'Tipo de producto',t:'select',op:tiposOp(),def:'WEB'},{k:'prioridad',l:'Prioridad',t:'select',op:['Alta','Media','Baja'],def:'Media'}],
+    [{k:'nombre',l:'Nombre *',req:1},{k:'unidad',l:'Nicho de negocio',t:'select',op:uniOp(),def:'STUDIO'}],
+    [{k:'empresa',l:'Empresa / marca',def:'Lombana Studio'},{k:'etapa',l:'Etapa',t:'select',op:[...ETAPAS.filter(e=>e!=='Publicado'),'Descartado'],def:'Idea'},{k:'fecha_objetivo',l:'Fecha objetivo',t:'date'}],
+    [{k:'objetivo',l:'Objetivo (qué debe lograr)'}],
+    [{k:'descripcion',l:'Descripción / alcance',t:'area',rows:4}],
+    [{k:'color',l:'Color',t:'color',def:'#7c4dff'}]
+  ], p, async v=>{
+    v.codigo=v.codigo.toUpperCase().replace(/\s+/g,'-'); if(p && p.etapa==='Publicado') delete v.etapa;
+    if (p) await q(sb.from('lab_proyectos').update(v).eq('id',p.id)); else await q(sb.from('lab_proyectos').insert(v));
+    await log(p?'Proyecto editado':'Proyecto creado', `${v.codigo} · ${v.nombre}`);
+  }, p ? async()=>{ await q(sb.from('lab_proyectos').delete().eq('id',p.id)); await log('Proyecto eliminado', p.codigo); cerrar(); } : null);
+}
+
+/* ===== DRAWER ===== */
+function abrir(id){ actual=D.proy.find(p=>p.id===id); if(!actual) return; document.querySelector('.tabs button[data-t=resumen]').click(); $('ov').classList.remove('hidden'); $('drawer').classList.remove('hidden'); pintarDrawer(); }
+function cerrar(){ $('ov').classList.add('hidden'); $('drawer').classList.add('hidden'); actual=null; }
+$('dCerrar').onclick=cerrar; $('ov').onclick=cerrar; $('dEditar').onclick=()=>formProyecto(actual);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['resumen','tareas','pruebas','html'].forEach(t=>$('t-'+t).classList.toggle('hidden',t!==b.dataset.t));
+});
+function pintarDrawer(){
+  const p=actual, i=ETAPAS.indexOf(p.etapa);
+  $('dCod').textContent=p.codigo; $('dNom').textContent=p.nombre; $('dTipo').innerHTML=chipTipo(p.tipo); $('dPrio').innerHTML=pill('Prioridad '+p.prioridad,COL_PRIO[p.prioridad]);
+  $('dStages').innerHTML = ETAPAS.map((e,k)=>`<button class="${k<i?'done':''} ${k===i?'on':''}" data-e="${e}">${k<i?'✓ ':''}${e}</button>`).join('');
+  $('dStages').querySelectorAll('button').forEach(b=>b.onclick=async()=>{
+    if (b.dataset.e==='Publicado') return publicar();
+    if (p.etapa==='Publicado') return toast('Ya está publicado en el Centro');
+    await q(sb.from('lab_proyectos').update({etapa:b.dataset.e}).eq('id',p.id)); await log('Etapa',`${p.codigo} → ${b.dataset.e}`); await cargar();
+  });
+  const t=D.tareas.filter(x=>x.proyecto_id===p.id), pr=D.pruebas.filter(x=>x.proyecto_id===p.id), h=D.html.filter(x=>x.proyecto_id===p.id);
+  const prod = D.productos.find(x=>x.id===p.producto_id);
+  const pendPru = pr.filter(x=>x.resultado!=='Aprobada').length;
+  $('t-resumen').innerHTML = `
+    ${prod ? `<div class="banner"><span>✅ Publicado en el Centro como <b>${esc(prod.codigo)} · ${esc(prod.nombre)}</b></span><a class="btn sm" href="./">Ver en el Centro</a></div>`
+           : `<div class="banner"><span>🚀 Cuando esté listo, publícalo: se crea el producto en el Centro${h.length?' y se guarda la última página HTML como entregable':''}.${pendPru?`<br><small style="color:var(--gold2)">Tiene ${pendPru} prueba(s) sin aprobar.</small>`:''}</span><button class="btn gold sm" id="btnPublicar">Publicar en el Centro</button></div>`}
+    <div class="g2">
+      <div class="li"><div class="tx"><small>Etapa</small><b>${esc(p.etapa)}</b></div></div>
+      <div class="li"><div class="tx"><small>Avance de tareas</small><b>${avance(p.id)}% (${t.filter(x=>x.estado==='Hecha').length}/${t.length})</b></div></div>
+      <div class="li"><div class="tx"><small>Pruebas</small><b>${pr.filter(x=>x.resultado==='Aprobada').length} aprobadas · ${pr.filter(x=>x.resultado==='Fallida').length} fallidas · ${pr.filter(x=>x.resultado==='Pendiente').length} pendientes</b></div></div>
+      <div class="li"><div class="tx"><small>Fecha objetivo</small><b>${fmtDia(p.fecha_objetivo)}</b></div></div>
+      <div class="li"><div class="tx"><small>Nicho · Empresa</small><b>${esc(uniDe(p.unidad).icono+' '+uniDe(p.unidad).nombre)} · ${esc(p.empresa)}</b></div></div>
+      <div class="li"><div class="tx"><small>Páginas HTML</small><b>${h.length} versión(es)</b></div></div>
+    </div>
+    <div class="li"><div class="tx"><small>Objetivo</small><b style="font-weight:500">${esc(p.objetivo||'—')}</b></div></div>
+    <div class="li"><div class="tx"><small>Descripción</small><b style="font-weight:500;white-space:pre-wrap">${esc(p.descripcion||'—')}</b></div></div>
+    <div class="li"><div class="tx"><small>Ideas, experimentos y prompts vinculados</small><b style="font-weight:500">${D.ideas.filter(x=>x.proyecto_id===p.id).length} ideas · ${D.exp.filter(x=>x.proyecto_id===p.id).length} experimentos · ${D.prompts.filter(x=>x.proyecto_id===p.id).length} prompts</b></div></div>
+    <p style="color:var(--mut);font-size:12px;margin-top:10px">Creado ${fmtFecha(p.created_at)} · Actualizado ${fmtFecha(p.updated_at)}</p>`;
+  $('btnPublicar') && ($('btnPublicar').onclick=publicar);
+
+  const ord={'En curso':0,'Pendiente':1,'Hecha':2};
+  $('tareas').innerHTML = t.length ? [...t].sort((a,b)=>ord[a.estado]-ord[b.estado]).map(x=>`
+    <div class="li ${x.estado==='Hecha'?'done':''}"><button class="chk ${x.estado==='Hecha'?'on':x.estado==='En curso'?'mid':''}" data-tk="${x.id}" title="Cambiar estado">${x.estado==='Hecha'?'✓':x.estado==='En curso'?'•':''}</button>
+      <div class="tx"><b>${esc(x.titulo)}</b><small>${esc(x.estado)}${x.etapa?' · '+esc(x.etapa):''}</small></div>
+      <button class="btn xs danger" data-tkdel="${x.id}">🗑</button></div>`).join('') : '<div class="empty">Sin tareas. Agrega la primera.</div>';
+  $('tareas').querySelectorAll('[data-tk]').forEach(b=>b.onclick=async()=>{ const x=t.find(y=>y.id===b.dataset.tk), n={Pendiente:'En curso','En curso':'Hecha',Hecha:'Pendiente'}[x.estado];
+    await q(sb.from('lab_tareas').update({estado:n}).eq('id',x.id)); await cargar(); });
+  $('tareas').querySelectorAll('[data-tkdel]').forEach(b=>b.onclick=async()=>{ await q(sb.from('lab_tareas').delete().eq('id',b.dataset.tkdel)); await cargar(); });
+
+  $('pruebas').innerHTML = pr.length ? pr.map(x=>`
+    <div class="li"><div class="tx"><b>${esc(x.nombre)}</b><small>${x.notas?esc(x.notas)+' · ':''}${fmtFecha(x.updated_at)}</small></div>
+      <select data-pr="${x.id}" style="width:130px;padding:6px 8px;font-size:12px;color:${x.resultado==='Aprobada'?'var(--ok)':x.resultado==='Fallida'?'var(--bad)':'var(--mut)'}">${['Pendiente','Aprobada','Fallida'].map(r=>`<option ${r===x.resultado?'selected':''}>${r}</option>`).join('')}</select>
+      <button class="btn xs" data-prn="${x.id}" title="Nota">📝</button><button class="btn xs danger" data-prdel="${x.id}">🗑</button></div>`).join('') : '<div class="empty">Sin pruebas. Define qué debe funcionar antes de lanzar.</div>';
+  $('pruebas').querySelectorAll('[data-pr]').forEach(s=>s.onchange=async()=>{ await q(sb.from('lab_pruebas').update({resultado:s.value}).eq('id',s.dataset.pr)); await log('Prueba',`${p.codigo} · ${s.value}`); await cargar(); });
+  $('pruebas').querySelectorAll('[data-prn]').forEach(b=>b.onclick=async()=>{ const x=pr.find(y=>y.id===b.dataset.prn); const n=prompt('Nota de la prueba (qué pasó):', x.notas||''); if(n===null) return; await q(sb.from('lab_pruebas').update({notas:n.trim()||null}).eq('id',x.id)); await cargar(); });
+  $('pruebas').querySelectorAll('[data-prdel]').forEach(b=>b.onclick=async()=>{ await q(sb.from('lab_pruebas').delete().eq('id',b.dataset.prdel)); await cargar(); });
+
+  $('htmls').innerHTML = h.length ? h.map(x=>`
+    <div class="li"><span class="tag">v${x.version}</span><div class="tx"><b>${esc(x.titulo)}</b><small>${fmtFecha(x.created_at)}${x.notas?' · '+esc(x.notas):''}</small></div>
+      <button class="btn xs" data-hopen="${x.id}">Abrir en probador</button></div>`).join('') : '<div class="empty">Sin páginas. Crea una en el probador.</div>';
+  $('htmls').querySelectorAll('[data-hopen]').forEach(b=>b.onclick=()=>{ cerrar(); ir('probador'); cargarVersion(b.dataset.hopen); });
+}
+$('dNuevoHtml').onclick=()=>{ const id=actual.id; cerrar(); ir('probador'); nuevaPagina(id); };
+$('addTarea').onclick=async()=>{ const v=$('nTarea').value.trim(); if(!v) return; await q(sb.from('lab_tareas').insert({proyecto_id:actual.id,titulo:v,etapa:actual.etapa})); $('nTarea').value=''; await cargar(); };
+$('nTarea').onkeydown=e=>{ if(e.key==='Enter') $('addTarea').click(); };
+$('addPrueba').onclick=async()=>{ const v=$('nPrueba').value.trim(); if(!v) return; await q(sb.from('lab_pruebas').insert({proyecto_id:actual.id,nombre:v})); $('nPrueba').value=''; await cargar(); };
+$('nPrueba').onkeydown=e=>{ if(e.key==='Enter') $('addPrueba').click(); };
+
+/* ===== PUBLICAR EN EL CENTRO ===== */
+async function publicar(){
+  const p=actual; if (p.producto_id) return toast('Ya está publicado');
+  const pend=D.pruebas.filter(x=>x.proyecto_id===p.id && x.resultado!=='Aprobada').length;
+  const cod = prompt(`Código del producto en el Centro${pend?`\n(Atención: ${pend} prueba(s) sin aprobar)`:''}:`, p.codigo.replace(/^LAB-/,''));
+  if (!cod) return;
+  try{
+    const prod = (await q(sb.from('productos').insert({codigo:cod.trim().toUpperCase(), nombre:p.nombre, tipo:p.tipo, unidad:p.unidad||'STUDIO', empresa:p.empresa, descripcion:[p.objetivo,p.descripcion].filter(Boolean).join('\n\n')||null, estado:'Activo', color:p.color}).select().single()));
+    const ult = (await q(sb.from('lab_html').select('*').eq('proyecto_id',p.id).order('version',{ascending:false}).limit(1)))[0];
+    if (ult) await subirAlCentro(prod, ult.titulo, ult.codigo, `Publicado desde el Laboratorio (v${ult.version})`);
+    await q(sb.from('lab_proyectos').update({etapa:'Publicado', producto_id:prod.id}).eq('id',p.id));
+    await log('Publicado', `${p.codigo} → Centro: ${prod.codigo}`, prod.id);
+    await cargar(); toast('🚀 Publicado en el Centro de Productos');
+  }catch(e){ if(String(e.message).includes('duplicate')) toast('Ese código ya existe en el Centro, usa otro'); }
+}
+async function subirAlCentro(prod, titulo, codigo, nota){
+  const ruta = `${prod.tipo}/${prod.codigo}/Entregable/${Date.now()}_${limpio(titulo||'pagina')}.html`;
+  const blob = new Blob([codigo], {type:'text/html'});
+  const up = await sb.storage.from(BUCKET).upload(ruta, blob, {contentType:'text/html', upsert:false});
+  if (up.error){ toast('Error al subir: '+up.error.message); throw up.error; }
+  const ex = await q(sb.from('producto_archivos').select('version').eq('producto_id',prod.id));
+  const n = ex.reduce((m,a)=>Math.max(m, parseInt(String(a.version).replace(/\D/g,''))||0),0)+1;
+  await q(sb.from('producto_archivos').update({es_vigente:false}).eq('producto_id',prod.id).eq('categoria','Entregable'));
+  await q(sb.from('producto_archivos').insert({producto_id:prod.id, nombre_archivo:limpio(titulo||'pagina')+'.html', ruta_storage:ruta, version:'v'+n, categoria:'Entregable', tipo:'text/html', tamano_bytes:blob.size, notas:nota, es_vigente:true}));
+  await q(sb.from('productos').update({version_actual:'v'+n}).eq('id',prod.id));
+  return n;
+}
+
+/* ===== IDEAS ===== */
+const puntaje = i => i.impacto*2 - i.esfuerzo;
+const cuadrante = i => i.impacto>=4&&i.esfuerzo<=2?['⚡ Ganancia rápida','#2ecc71']:i.impacto>=4?['🏔 Proyecto grande','#4c8dff']:i.esfuerzo<=2?['🧩 Relleno','#f2c94c']:['⏸ Revisar','#8e9bbd'];
+function ideas(){
+  const s=$('qIdeas').value.toLowerCase(), f=$('fIdeas').value;
+  const l = D.ideas.filter(i=>(!f||i.estado===f)&&(!s||(i.titulo+' '+(i.descripcion||'')).toLowerCase().includes(s))).sort((a,b)=>puntaje(b)-puntaje(a));
+  $('ideas').innerHTML = l.length ? l.map(i=>{ const [cq,cc]=cuadrante(i); const pr=D.proy.find(p=>p.id===i.proyecto_id); return `
+    <div class="item"><div class="row" style="justify-content:space-between">${pill(i.estado,COL_IDEA[i.estado])}${pill(cq,cc)}</div>
+      <h4>${esc(i.titulo)}</h4>${i.descripcion?`<p>${esc(i.descripcion)}</p>`:''}
+      <div class="row wrap" style="font-size:12px;color:var(--mut)">${i.tipo?chipTipo(i.tipo):''}<span>Impacto <b style="color:var(--txt)">${'★'.repeat(i.impacto)}${'☆'.repeat(5-i.impacto)}</b></span><span>Esfuerzo <b style="color:var(--txt)">${'●'.repeat(i.esfuerzo)}${'○'.repeat(5-i.esfuerzo)}</b></span></div>
+      <div class="foot"><span class="score" style="color:#b9a2ff">Puntaje ${puntaje(i)}</span><span class="row" style="gap:6px">
+        ${pr?`<button class="btn xs" data-ip="${pr.id}">Ver proyecto</button>`:i.estado!=='Descartada'?`<button class="btn xs gold" data-iconv="${i.id}">→ Convertir en proyecto</button>`:''}
+        <button class="btn xs" data-iedit="${i.id}">Editar</button></span></div></div>`; }).join('') : '<div class="empty" style="grid-column:1/-1">Sin ideas todavía. Anota la primera.</div>';
+  document.querySelectorAll('[data-iedit]').forEach(b=>b.onclick=()=>formIdea(D.ideas.find(i=>i.id===b.dataset.iedit)));
+  document.querySelectorAll('[data-ip]').forEach(b=>b.onclick=()=>{ ir('tablero'); abrir(b.dataset.ip); });
+  document.querySelectorAll('[data-iconv]').forEach(b=>b.onclick=()=>convertirIdea(D.ideas.find(i=>i.id===b.dataset.iconv)));
+}
+['qIdeas','fIdeas'].forEach(id=>$(id).oninput=ideas);
+function formIdea(i=null){
+  form(i?'Editar idea':'Nueva idea', [
+    [{k:'titulo',l:'Idea *',req:1}],
+    [{k:'descripcion',l:'Descripción',t:'area',rows:3}],
+    [{k:'tipo',l:'Tipo de producto',t:'select',op:[['','—'],...tiposOp()]},{k:'impacto',l:'Impacto (1-5)',t:'select',op:[1,2,3,4,5],def:3},{k:'esfuerzo',l:'Esfuerzo (1-5)',t:'select',op:[1,2,3,4,5],def:3}],
+    [{k:'estado',l:'Estado',t:'select',op:['Nueva','Evaluando','Convertida','Descartada'],def:'Nueva'}]
+  ], i, async v=>{ v.impacto=+v.impacto; v.esfuerzo=+v.esfuerzo; if(i) await q(sb.from('lab_ideas').update(v).eq('id',i.id)); else { await q(sb.from('lab_ideas').insert(v)); await log('Idea', v.titulo); } },
+  i ? async()=>q(sb.from('lab_ideas').delete().eq('id',i.id)) : null);
+}
+async function convertirIdea(i){
+  const cod = prompt('Código para el nuevo proyecto:', 'LAB-'+limpio(i.titulo).toUpperCase().slice(0,12)); if(!cod) return;
+  try{
+    const p = await q(sb.from('lab_proyectos').insert({codigo:cod.trim().toUpperCase(), nombre:i.titulo, tipo:i.tipo||'OTRO', unidad:'STUDIO', descripcion:i.descripcion, prioridad:i.impacto>=4?'Alta':i.impacto>=3?'Media':'Baja', etapa:'Idea'}).select().single());
+    await q(sb.from('lab_ideas').update({estado:'Convertida', proyecto_id:p.id}).eq('id',i.id));
+    await log('Idea → proyecto', `${p.codigo} · ${p.nombre}`); await cargar(); ir('tablero'); abrir(p.id); toast('Idea convertida en proyecto');
+  }catch(e){ if(String(e.message).includes('duplicate')) toast('Ese código ya existe'); }
+}
+
+/* ===== EXPERIMENTOS ===== */
+function experimentos(){
+  const s=$('qExp').value.toLowerCase(), f=$('fExp').value;
+  const l = D.exp.filter(x=>(!f||x.estado===f)&&(!s||[x.titulo,x.hipotesis,x.resultado,x.conclusion].join(' ').toLowerCase().includes(s)));
+  $('experimentos').innerHTML = l.length ? l.map(x=>{ const pr=D.proy.find(p=>p.id===x.proyecto_id); return `
+    <div class="item"><div class="row" style="justify-content:space-between">${pill(x.estado,COL_EXP[x.estado])}${pr?`<span class="tag">${esc(pr.codigo)}</span>`:''}</div>
+      <h4>${esc(x.titulo)}</h4>
+      ${x.hipotesis?`<div class="k">Hipótesis</div><p>${esc(x.hipotesis)}</p>`:''}
+      ${x.metodo?`<div class="k">Cómo se prueba</div><p>${esc(x.metodo)}</p>`:''}
+      ${x.resultado?`<div class="k">Resultado</div><p>${esc(x.resultado)}</p>`:''}
+      ${x.conclusion?`<div class="k">Conclusión</div><p style="color:var(--txt)">${esc(x.conclusion)}</p>`:''}
+      <div class="foot"><span style="font-size:12px;color:var(--mut)">${fmtFecha(x.updated_at)}</span><button class="btn xs" data-xedit="${x.id}">Editar</button></div></div>`; }).join('') : '<div class="empty" style="grid-column:1/-1">Sin experimentos. Plantea una hipótesis y pruébala.</div>';
+  document.querySelectorAll('[data-xedit]').forEach(b=>b.onclick=()=>formExp(D.exp.find(x=>x.id===b.dataset.xedit)));
+}
+['qExp','fExp'].forEach(id=>$(id).oninput=experimentos);
+function formExp(x=null){
+  form(x?'Editar experimento':'Nuevo experimento', [
+    [{k:'titulo',l:'Nombre del experimento *',req:1}],
+    [{k:'proyecto_id',l:'Proyecto',t:'select',op:proyOp()},{k:'estado',l:'Estado',t:'select',op:['Planeado','En curso','Exitoso','Fallido'],def:'Planeado'}],
+    [{k:'hipotesis',l:'Hipótesis (qué creo que va a pasar)',t:'area',rows:2}],
+    [{k:'metodo',l:'Cómo lo voy a probar',t:'area',rows:2}],
+    [{k:'resultado',l:'Resultado obtenido',t:'area',rows:2}],
+    [{k:'conclusion',l:'Conclusión / decisión',t:'area',rows:2}]
+  ], x, async v=>{ if(x) await q(sb.from('lab_experimentos').update(v).eq('id',x.id)); else { await q(sb.from('lab_experimentos').insert(v)); await log('Experimento', v.titulo); } },
+  x ? async()=>q(sb.from('lab_experimentos').delete().eq('id',x.id)) : null);
+}
+
+/* ===== PROMPTS ===== */
+function prompts(){
+  const s=$('qPrompts').value.toLowerCase(), f=$('fPrompts').value;
+  const l = D.prompts.filter(x=>(!f||x.categoria===f)&&(!s||(x.titulo+' '+x.contenido).toLowerCase().includes(s)));
+  $('prompts').innerHTML = l.length ? l.map(x=>{ const pr=D.proy.find(p=>p.id===x.proyecto_id); return `
+    <div class="item"><div class="row" style="justify-content:space-between"><span class="tag">${esc(x.categoria)}</span>${pr?`<span class="tag">${esc(pr.codigo)}</span>`:''}</div>
+      <h4>${esc(x.titulo)}</h4><pre class="prompt">${esc(x.contenido)}</pre>
+      <div class="foot"><span style="font-size:12px;color:var(--mut)">${x.contenido.length} caracteres · ${fmtFecha(x.updated_at)}</span>
+        <span class="row" style="gap:6px"><button class="btn xs gold" data-pcopy="${x.id}">📋 Copiar</button><button class="btn xs" data-pedit="${x.id}">Editar</button></span></div></div>`; }).join('') : '<div class="empty" style="grid-column:1/-1">Sin prompts. Guarda aquí tus prompts maestros.</div>';
+  document.querySelectorAll('[data-pcopy]').forEach(b=>b.onclick=async()=>{ try{ await navigator.clipboard.writeText(D.prompts.find(x=>x.id===b.dataset.pcopy).contenido); toast('Prompt copiado'); }catch{ toast('No se pudo copiar'); } });
+  document.querySelectorAll('[data-pedit]').forEach(b=>b.onclick=()=>formPrompt(D.prompts.find(x=>x.id===b.dataset.pedit)));
+}
+['qPrompts','fPrompts'].forEach(id=>$(id).oninput=prompts);
+function formPrompt(x=null){
+  form(x?'Editar prompt':'Nuevo prompt', [
+    [{k:'titulo',l:'Título *',req:1},{k:'categoria',l:'Categoría',def:'General',list:'catList'}],
+    [{k:'proyecto_id',l:'Proyecto (opcional)',t:'select',op:proyOp()}],
+    [{k:'contenido',l:'Contenido del prompt *',t:'area',rows:12,mono:1,req:1}]
+  ], x, async v=>{ if(x) await q(sb.from('lab_prompts').update(v).eq('id',x.id)); else { await q(sb.from('lab_prompts').insert(v)); await log('Prompt', v.titulo); } },
+  x ? async()=>q(sb.from('lab_prompts').delete().eq('id',x.id)) : null);
+  $('mBody').insertAdjacentHTML('beforeend', `<datalist id="catList">${[...new Set(['General','ERP','Dashboard','Página web','Diseño','Ventas','Auditoría',...D.prompts.map(p=>p.categoria)])].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`);
+}
+
+/* ===== PROBADOR HTML ===== */
+let timer=null;
+function render(){ $('preview').srcdoc = $('code').value; }
+$('code').addEventListener('input', ()=>{ $('pInfo').textContent = htmlActual ? `v${htmlActual.version} · cambios sin guardar` : 'sin guardar'; if($('pAuto').checked){ clearTimeout(timer); timer=setTimeout(render,500);} });
+$('code').addEventListener('keydown', e=>{
+  if (e.key==='Tab'){ e.preventDefault(); const t=e.target, s=t.selectionStart; t.setRangeText('  ', s, t.selectionEnd, 'end'); t.dispatchEvent(new Event('input')); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='s'){ e.preventDefault(); $('pGuardar').click(); }
+});
+$('pRun').onclick=render;
+document.querySelectorAll('#pSize button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#pSize button').forEach(x=>x.classList.toggle('on',x===b)); $('preview').style.width=b.dataset.w; });
+function nuevaPagina(proyId=''){ htmlActual=null; $('code').value=PLANTILLA; $('pTitulo').value='Mi página'; $('pProy').value=proyId||''; versionesSelect(); $('pInfo').textContent='sin guardar'; render(); }
+function versionesSelect(){
+  const pid=$('pProy').value; const l=D.html.filter(h=>(h.proyecto_id||'')===pid);
+  $('pVers').innerHTML='<option value="">Versiones guardadas ('+l.length+')…</option>'+l.map(h=>`<option value="${h.id}" ${htmlActual?.id===h.id?'selected':''}>v${h.version} · ${esc(h.titulo)} · ${fmtFecha(h.created_at)}</option>`).join('');
+}
+$('pProy').onchange=()=>{ htmlActual=null; versionesSelect(); };
+$('pVers').onchange=()=>{ if($('pVers').value) cargarVersion($('pVers').value); };
+async function cargarVersion(id){
+  const h = (await q(sb.from('lab_html').select('*').eq('id',id).single()));
+  htmlActual=h; $('code').value=h.codigo; $('pTitulo').value=h.titulo; $('pProy').value=h.proyecto_id||''; versionesSelect();
+  $('pInfo').textContent=`v${h.version} · guardada ${fmtFecha(h.created_at)}`; render();
+}
+$('pGuardar').onclick=async()=>{
+  const codigo=$('code').value; if(!codigo.trim()) return toast('No hay código');
+  const pid=$('pProy').value||null, titulo=$('pTitulo').value.trim()||'Mi página';
+  const prev=D.html.filter(h=>(h.proyecto_id||null)===pid && h.titulo===titulo);
+  const version=prev.reduce((m,h)=>Math.max(m,h.version),0)+1;
+  const notas=prompt('Nota de esta versión (opcional):','')||null;
+  const h=await q(sb.from('lab_html').insert({proyecto_id:pid,titulo,version,codigo,notas}).select('id,proyecto_id,titulo,version,notas,created_at').single());
+  await log('HTML guardado', `${titulo} v${version}`);
+  htmlActual={...h,codigo}; await cargar(); $('pInfo').textContent=`v${version} · guardada`; toast(`Versión v${version} guardada`);
+};
+$('pDescargar').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('code').value],{type:'text/html'})); a.download=limpio($('pTitulo').value||'pagina')+'.html'; a.click(); URL.revokeObjectURL(a.href); };
+$('pAbrir').onclick=()=>{ const u=URL.createObjectURL(new Blob([$('code').value],{type:'text/html'})); window.open(u,'_blank'); setTimeout(()=>URL.revokeObjectURL(u),60000); };
+$('pFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; $('code').value=await f.text(); $('pTitulo').value=f.name.replace(/\.(html?|txt)$/i,''); htmlActual=null; $('pInfo').textContent='archivo cargado · sin guardar'; render(); e.target.value=''; };
+$('pEnviar').onclick=async()=>{
+  const codigo=$('code').value; if(!codigo.trim()) return toast('No hay código');
+  const pid=$('pProy').value, pr=D.proy.find(p=>p.id===pid);
+  let prod = pr?.producto_id ? D.productos.find(x=>x.id===pr.producto_id) : null;
+  if (!prod){
+    const lista=D.productos.map((x,i)=>`${i+1}. ${x.codigo} · ${x.nombre}`).join('\n');
+    const n=prompt(`${pr?'Este proyecto aún no está publicado. ':''}¿A qué producto del Centro lo envías? Escribe el número:\n\n${lista}`); if(!n) return;
+    prod=D.productos[parseInt(n)-1]; if(!prod) return toast('Número no válido');
+  }
+  if(!confirm(`¿Guardar esta página como nueva versión entregable de "${prod.nombre}" en el Centro?`)) return;
+  try{ const v=await subirAlCentro(prod, $('pTitulo').value.trim()||'pagina', codigo, 'Enviado desde el Probador HTML'); await log('Enviado al Centro', `${$('pTitulo').value} → ${prod.codigo} v${v}`, prod.id); toast(`Guardado en el Centro como ${prod.codigo} v${v}`); }catch{}
+};
+
+nuevaPagina(); ir('tablero');
+</script>
+</body>
+</html>
