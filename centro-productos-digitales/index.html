@@ -143,7 +143,7 @@
     <div class="nav-t">Ir a</div>
     <a class="nav" href="presidencia.html" style="text-decoration:none;border-color:#8a6400"><span class="ic">♛</span>Presidencia</a>
     <a class="nav" href="laboratorio.html" style="text-decoration:none;border-color:#4a3a8a"><span class="ic">⚗️</span>Laboratorio</a>
-    <div class="side-foot"><div id="userEmail" style="margin-bottom:8px;word-break:break-all"></div><button class="btn sm" id="btnLogout">Cerrar sesión</button></div>
+    <div class="side-foot"><div id="userEmail" style="margin-bottom:8px;word-break:break-all"></div><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" id="btnPass">🔑 Contraseña</button><button class="btn sm" id="btnLogout">Cerrar sesión</button></div></div>
   </aside>
 
   <main>
@@ -220,6 +220,18 @@
   </div>
 </aside>
 
+<!-- ============ MODAL CONTRASEÑA ============ -->
+<div class="modal hidden" id="passModal">
+  <div class="modal-c" style="max-width:420px">
+    <h2>🔑 Definir contraseña</h2>
+    <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Con esta contraseña entras al Centro, al Laboratorio y a la Presidencia sin necesidad del enlace por correo.</p>
+    <div class="field"><label>Nueva contraseña (mínimo 8 caracteres)</label><input id="np1" type="password" autocomplete="new-password"></div>
+    <div class="field"><label>Repetir contraseña</label><input id="np2" type="password" autocomplete="new-password"></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" id="npCancel">Cancelar</button><button class="btn gold" id="npSave">Guardar contraseña</button></div>
+    <div class="msg err" id="npMsg"></div>
+  </div>
+</div>
+
 <!-- ============ MODAL PRODUCTO ============ -->
 <div class="modal hidden" id="modal">
   <div class="modal-c">
@@ -292,7 +304,7 @@ async function log(accion, detalle, producto_id=null){ await sb.from('registro')
 function msg(t, ok=false){ const m=$('loginMsg'); m.textContent=t; m.className='msg '+(ok?'ok':'err'); }
 $('btnLogin').onclick = async () => {
   const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('pass').value });
-  if (error) msg(error.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : error.message);
+  if (error) msg(error.message.includes('Invalid') ? 'Correo o contraseña incorrectos. Si tu cuenta se creó con el enlace por correo, aún no tiene contraseña: usa "Enviarme un enlace de acceso" y luego define tu contraseña con el botón 🔑.' : error.message);
 };
 $('pass').onkeydown = e => { if (e.key==='Enter') $('btnLogin').click(); };
 $('btnSignup').onclick = async () => {
@@ -307,6 +319,16 @@ $('btnMagic').onclick = async () => {
   error ? msg(error.message) : msg('Te enviamos un enlace de acceso. Ábrelo desde este mismo navegador.', true);
 };
 $('btnLogout').onclick = () => sb.auth.signOut();
+$('btnPass').onclick = () => { $('np1').value=''; $('np2').value=''; $('npMsg').textContent=''; $('passModal').classList.remove('hidden'); };
+$('npCancel').onclick = () => $('passModal').classList.add('hidden');
+$('npSave').onclick = async () => {
+  const a=$('np1').value, b=$('np2').value;
+  if (a.length<8) return $('npMsg').textContent='Mínimo 8 caracteres.';
+  if (a!==b) return $('npMsg').textContent='Las contraseñas no coinciden.';
+  const { error } = await sb.auth.updateUser({ password:a });
+  if (error) return $('npMsg').textContent = error.message;
+  $('np1').value=''; $('np2').value=''; $('passModal').classList.add('hidden'); toast('Contraseña guardada. Ya puedes ingresar con ella.');
+};
 sb.auth.onAuthStateChange((_e, s) => s ? entrar(s) : salir());
 async function entrar(s){ $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('userEmail').textContent=s.user.email; await cargar(); }
 function salir(){ $('app').classList.add('hidden'); $('login').classList.remove('hidden'); }

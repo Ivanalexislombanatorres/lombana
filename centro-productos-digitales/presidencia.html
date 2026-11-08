@@ -265,7 +265,7 @@ const mesesPeriodo = () => ({mes:1,mesant:1,tri:3,anio:new Date().getMonth()+1})
 document.querySelectorAll('#periodo button').forEach(b=>b.onclick=()=>{ periodo=b.dataset.p; document.querySelectorAll('#periodo button').forEach(x=>x.classList.toggle('on',x===b)); pintar(); });
 
 /* ===== AUTH ===== */
-$('btnLogin').onclick = async () => { const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('pass').value }); if (error) $('loginMsg').textContent = error.message.includes('Invalid') ? 'Correo o contraseña incorrectos.' : error.message; };
+$('btnLogin').onclick = async () => { const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('pass').value }); if (error) $('loginMsg').textContent = error.message.includes('Invalid') ? 'Correo o contraseña incorrectos. Si aún no tienes contraseña, entra por el Centro de Productos con el enlace por correo y defínela con el botón 🔑.' : error.message; };
 $('pass').onkeydown = e => { if (e.key==='Enter') $('btnLogin').click(); };
 $('btnLogout').onclick = () => sb.auth.signOut();
 sb.auth.onAuthStateChange((_e, s) => {
