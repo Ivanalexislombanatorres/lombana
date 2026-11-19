@@ -1,0 +1,76 @@
+{
+  "code": "restaurante",
+  "name": "Restaurante y cafetería",
+  "icon": "utensils",
+  "description": "Carta, pedidos, mesas e inventario de insumos.",
+  "operation_type": "mixta",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "inventario",
+    "proveedores",
+    "registros"
+  ],
+  "labels": {
+    "productos": "Carta e insumos"
+  },
+  "entities": [
+    {
+      "key": "mesas",
+      "label": "Mesas",
+      "fields": [
+        {
+          "key": "numero",
+          "label": "Número",
+          "type": "number",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "capacidad",
+          "label": "Capacidad",
+          "type": "number",
+          "min": 1
+        },
+        {
+          "key": "zona",
+          "label": "Zona",
+          "type": "select",
+          "options": [
+            "Salón",
+            "Terraza",
+            "Barra"
+          ]
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Libre",
+            "Ocupada",
+            "Reservada"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#DC2626",
+    "secondary": "#1C1917",
+    "button": "#DC2626"
+  },
+  "short": "Restaurante",
+  "order": 1
+}

@@ -1,0 +1,111 @@
+{
+  "code": "barberia",
+  "name": "Barbería y peluquería",
+  "icon": "scissors",
+  "description": "Citas, servicios, barberos y ventas de productos.",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "registros",
+    "inventario"
+  ],
+  "labels": {
+    "productos": "Servicios y productos",
+    "clientes": "Clientes"
+  },
+  "entities": [
+    {
+      "key": "citas",
+      "label": "Citas",
+      "fields": [
+        {
+          "key": "cliente",
+          "label": "Cliente",
+          "type": "relation",
+          "relation": "customers",
+          "required": true
+        },
+        {
+          "key": "barbero",
+          "label": "Barbero",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "hora",
+          "label": "Hora",
+          "type": "text",
+          "required": true,
+          "max_length": 5
+        },
+        {
+          "key": "servicio",
+          "label": "Servicio",
+          "type": "select",
+          "options": [
+            "Corte",
+            "Barba",
+            "Corte + barba",
+            "Tinte",
+            "Cejas"
+          ]
+        },
+        {
+          "key": "valor",
+          "label": "Valor",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "comision_pct",
+          "label": "Comisión %",
+          "type": "number",
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "comision",
+          "label": "Comisión barbero",
+          "type": "calculated",
+          "formula": "COMISION(valor, comision_pct)"
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Agendada",
+            "Atendida",
+            "Cancelada",
+            "No asistió"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#C9A227",
+    "secondary": "#111827",
+    "button": "#C9A227"
+  },
+  "short": "Barbería",
+  "order": 0
+}

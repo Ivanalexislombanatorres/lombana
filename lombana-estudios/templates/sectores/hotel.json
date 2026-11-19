@@ -1,0 +1,95 @@
+{
+  "code": "hotel",
+  "name": "Hotel",
+  "icon": "bed",
+  "description": "Habitaciones, reservas y huéspedes.",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "registros"
+  ],
+  "labels": {
+    "clientes": "Huéspedes"
+  },
+  "entities": [
+    {
+      "key": "reservas",
+      "label": "Reservas",
+      "fields": [
+        {
+          "key": "huesped",
+          "label": "Huésped",
+          "type": "relation",
+          "relation": "customers",
+          "required": true
+        },
+        {
+          "key": "habitacion",
+          "label": "Habitación",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "entrada",
+          "label": "Entrada",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "salida",
+          "label": "Salida",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "noches",
+          "label": "Noches",
+          "type": "number",
+          "min": 1
+        },
+        {
+          "key": "tarifa",
+          "label": "Tarifa por noche",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "type": "calculated",
+          "formula": "noches * tarifa"
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Reservada",
+            "Check-in",
+            "Check-out",
+            "Cancelada"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#7C3AED",
+    "secondary": "#1E1B4B",
+    "button": "#7C3AED"
+  },
+  "short": "Hotel",
+  "order": 7
+}

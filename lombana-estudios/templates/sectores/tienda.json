@@ -1,0 +1,33 @@
+{
+  "code": "tienda",
+  "name": "Tienda y supermercado",
+  "icon": "store",
+  "description": "Punto de venta, inventario y proveedores.",
+  "operation_type": "productos",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "inventario",
+    "proveedores"
+  ],
+  "labels": {},
+  "entities": [],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#16A34A",
+    "secondary": "#052E16",
+    "button": "#16A34A"
+  },
+  "short": "Tienda",
+  "order": 2
+}

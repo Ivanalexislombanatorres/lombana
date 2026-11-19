@@ -1,0 +1,82 @@
+{
+  "code": "servicios",
+  "name": "Servicios profesionales",
+  "icon": "briefcase",
+  "description": "Proyectos, clientes y facturación de servicios.",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "registros"
+  ],
+  "labels": {
+    "productos": "Servicios"
+  },
+  "entities": [
+    {
+      "key": "proyectos",
+      "label": "Proyectos",
+      "fields": [
+        {
+          "key": "cliente",
+          "label": "Cliente",
+          "type": "relation",
+          "relation": "customers",
+          "required": true
+        },
+        {
+          "key": "nombre",
+          "label": "Proyecto",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "horas",
+          "label": "Horas",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "tarifa_hora",
+          "label": "Tarifa por hora",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "valor",
+          "label": "Valor",
+          "type": "calculated",
+          "formula": "horas * tarifa_hora"
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Propuesta",
+            "En curso",
+            "Terminado"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#4F46E5",
+    "secondary": "#1E1B4B",
+    "button": "#4F46E5"
+  },
+  "short": "Servicios",
+  "order": 10
+}

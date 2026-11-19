@@ -1,0 +1,107 @@
+{
+  "code": "nomina",
+  "name": "Nómina y gestión humana",
+  "icon": "id",
+  "description": "Registro de empleados y novedades (la liquidación de nómina es una fase posterior).",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "registros",
+    "reportes",
+    "usuarios",
+    "auditoria"
+  ],
+  "labels": {},
+  "entities": [
+    {
+      "key": "empleados",
+      "label": "Empleados",
+      "fields": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "documento",
+          "label": "Documento",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "cargo",
+          "label": "Cargo",
+          "type": "text"
+        },
+        {
+          "key": "ingreso",
+          "label": "Fecha de ingreso",
+          "type": "date"
+        },
+        {
+          "key": "salario",
+          "label": "Salario",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Activo",
+            "Retirado"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "novedades",
+      "label": "Novedades",
+      "fields": [
+        {
+          "key": "empleado",
+          "label": "Empleado",
+          "type": "relation",
+          "relation": "empleados",
+          "required": true
+        },
+        {
+          "key": "tipo",
+          "label": "Tipo",
+          "type": "select",
+          "options": [
+            "Horas extra",
+            "Incapacidad",
+            "Vacaciones",
+            "Licencia",
+            "Permiso"
+          ]
+        },
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "cantidad",
+          "label": "Cantidad (horas/días)",
+          "type": "number",
+          "min": 0
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "registros"
+  ],
+  "branding": {
+    "primary": "#059669",
+    "secondary": "#022C22",
+    "button": "#059669"
+  },
+  "short": "Nómina",
+  "order": 11
+}

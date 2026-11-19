@@ -1,0 +1,7 @@
+data
+backups
+.venv
+tests
+docs/capturas
+frontend/node_modules
+*.bat

@@ -1,0 +1,87 @@
+{
+  "code": "transporte",
+  "name": "Empresa de transporte",
+  "icon": "bus",
+  "description": "Vehículos, viajes y conductores.",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "registros"
+  ],
+  "labels": {
+    "productos": "Servicios de transporte"
+  },
+  "entities": [
+    {
+      "key": "viajes",
+      "label": "Viajes",
+      "fields": [
+        {
+          "key": "placa",
+          "label": "Placa",
+          "type": "text",
+          "required": true,
+          "max_length": 10
+        },
+        {
+          "key": "conductor",
+          "label": "Conductor",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "origen",
+          "label": "Origen",
+          "type": "text"
+        },
+        {
+          "key": "destino",
+          "label": "Destino",
+          "type": "text"
+        },
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "type": "date"
+        },
+        {
+          "key": "km",
+          "label": "Kilómetros",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "valor_km",
+          "label": "Valor por km",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "valor",
+          "label": "Valor del viaje",
+          "type": "calculated",
+          "formula": "km * valor_km"
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#CA8A04",
+    "secondary": "#1C1917",
+    "button": "#CA8A04"
+  },
+  "short": "Transporte",
+  "order": 9
+}

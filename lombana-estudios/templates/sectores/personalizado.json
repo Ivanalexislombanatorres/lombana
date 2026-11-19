@@ -1,0 +1,27 @@
+{
+  "code": "personalizado",
+  "name": "Personalizado",
+  "icon": "sliders",
+  "description": "Empieza desde cero y diseña tus propios módulos y entidades.",
+  "operation_type": "mixta",
+  "modules": [
+    "dashboard",
+    "usuarios",
+    "auditoria"
+  ],
+  "labels": {},
+  "entities": [],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#2563EB",
+    "secondary": "#0F172A",
+    "button": "#2563EB"
+  },
+  "short": "Personalizado",
+  "order": 12
+}

@@ -1,0 +1,84 @@
+{
+  "code": "industrial",
+  "name": "Empresa industrial",
+  "icon": "factory",
+  "description": "Producción, materias primas e inventario.",
+  "operation_type": "productos",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "inventario",
+    "proveedores",
+    "registros"
+  ],
+  "labels": {
+    "productos": "Productos y materias primas"
+  },
+  "entities": [
+    {
+      "key": "ordenes_produccion",
+      "label": "Órdenes de producción",
+      "fields": [
+        {
+          "key": "producto",
+          "label": "Producto",
+          "type": "relation",
+          "relation": "products",
+          "required": true
+        },
+        {
+          "key": "cantidad",
+          "label": "Cantidad",
+          "type": "number",
+          "min": 0,
+          "required": true
+        },
+        {
+          "key": "costo_unitario",
+          "label": "Costo unitario",
+          "type": "money",
+          "min": 0
+        },
+        {
+          "key": "costo_total",
+          "label": "Costo total",
+          "type": "calculated",
+          "formula": "cantidad * costo_unitario"
+        },
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "type": "date"
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "type": "select",
+          "options": [
+            "Planificada",
+            "En proceso",
+            "Terminada"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#64748B",
+    "secondary": "#0F172A",
+    "button": "#64748B"
+  },
+  "short": "Industrial",
+  "order": 5
+}

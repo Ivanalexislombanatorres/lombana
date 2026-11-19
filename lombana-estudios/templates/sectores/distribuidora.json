@@ -1,0 +1,71 @@
+{
+  "code": "distribuidora",
+  "name": "Distribuidora",
+  "icon": "truck",
+  "description": "Rutas, pedidos mayoristas, inventario y proveedores.",
+  "operation_type": "productos",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "inventario",
+    "proveedores",
+    "registros"
+  ],
+  "labels": {},
+  "entities": [
+    {
+      "key": "rutas",
+      "label": "Rutas",
+      "fields": [
+        {
+          "key": "nombre",
+          "label": "Ruta",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "conductor",
+          "label": "Conductor",
+          "type": "text"
+        },
+        {
+          "key": "placa",
+          "label": "Placa",
+          "type": "text",
+          "max_length": 10
+        },
+        {
+          "key": "dia",
+          "label": "Día",
+          "type": "select",
+          "options": [
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado"
+          ]
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#EA580C",
+    "secondary": "#1C1917",
+    "button": "#EA580C"
+  },
+  "short": "Distribuidora",
+  "order": 3
+}

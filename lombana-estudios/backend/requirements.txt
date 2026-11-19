@@ -1,0 +1,14 @@
+# Versiones exactas con las que se probó LOMBANA ESTUDIOS v1.0 (Python 3.11 – 3.13)
+fastapi==0.165.0
+starlette==1.7.0
+uvicorn==0.54.0
+pydantic==2.13.5
+email-validator==2.4.0
+SQLAlchemy==2.1.9
+alembic==1.20.1
+psycopg2-binary==2.9.13
+bcrypt==5.0.0
+PyJWT==2.15.0
+cryptography==50.0.1
+httpx==0.28.1
+tzdata==2026.6

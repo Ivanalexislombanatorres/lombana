@@ -1,0 +1,33 @@
+{
+  "code": "comercial",
+  "name": "Empresa comercial",
+  "icon": "briefcase",
+  "description": "Compra-venta, clientes, proveedores e inventario.",
+  "operation_type": "productos",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "inventario",
+    "proveedores"
+  ],
+  "labels": {},
+  "entities": [],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#0EA5E9",
+    "secondary": "#0C1A2B",
+    "button": "#0EA5E9"
+  },
+  "short": "Comercial",
+  "order": 4
+}

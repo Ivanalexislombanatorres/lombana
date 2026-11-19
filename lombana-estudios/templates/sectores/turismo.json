@@ -1,0 +1,71 @@
+{
+  "code": "turismo",
+  "name": "Agencia de turismo",
+  "icon": "plane",
+  "description": "Paquetes, reservas y clientes.",
+  "operation_type": "servicios",
+  "modules": [
+    "dashboard",
+    "clientes",
+    "productos",
+    "ventas",
+    "reportes",
+    "usuarios",
+    "auditoria",
+    "registros"
+  ],
+  "labels": {
+    "productos": "Paquetes"
+  },
+  "entities": [
+    {
+      "key": "viajes",
+      "label": "Viajes",
+      "fields": [
+        {
+          "key": "cliente",
+          "label": "Cliente",
+          "type": "relation",
+          "relation": "customers",
+          "required": true
+        },
+        {
+          "key": "destino",
+          "label": "Destino",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "salida",
+          "label": "Salida",
+          "type": "date"
+        },
+        {
+          "key": "pasajeros",
+          "label": "Pasajeros",
+          "type": "number",
+          "min": 1
+        },
+        {
+          "key": "valor",
+          "label": "Valor",
+          "type": "money",
+          "min": 0
+        }
+      ]
+    }
+  ],
+  "kpis": [
+    "ventas_mes",
+    "ticket_promedio",
+    "clientes",
+    "stock_bajo"
+  ],
+  "branding": {
+    "primary": "#0284C7",
+    "secondary": "#082F49",
+    "button": "#0284C7"
+  },
+  "short": "Turismo",
+  "order": 8
+}
