@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { KeyRound, Plug, Plus, Send, Trash2 } from 'lucide-react'
-import { api, dt } from '../lib/api'
+import { IS_ARTIFACT, api, dt } from '../lib/api'
 import { Badge, Button, Empty, ErrorBox, Field, Modal, PageHeader, Spinner, Table, statusTone, useLoad, useToast } from '../components/ui'
 
 type Provider = {
@@ -50,7 +50,7 @@ export default function AiGateway() {
           {available.map(p => <Button key={p.code} variant="ghost" icon={<Plus className="h-4 w-4" />} onClick={() => act('add', async () => { await api.post('/api/ai/providers', { code: p.code }); prov.reload() })}>{p.name}</Button>)}
           {available.length === 0 && <p className="text-sm text-slate-500">Todos los proveedores soportados están agregados.</p>}
         </div>
-        <p className="mt-2 text-xs text-slate-500">Las claves se cifran en el servidor (Fernet) y nunca se envían al navegador: solo se muestra una pista enmascarada.</p>
+        <p className="mt-2 text-xs text-slate-500">{IS_ARTIFACT ? 'Dentro de Claude la IA usa Claude directamente, sin API keys. Los proveedores externos (OpenAI, Gemini, Ollama…) están en la versión de servidor.' : 'Las claves se cifran en el servidor (Fernet) y nunca se envían al navegador: solo se muestra una pista enmascarada.'}</p>
       </div>
 
       {!prov.data?.length ? <div className="panel"><Empty icon={<Plug className="h-8 w-8" />} title="Sin proveedores todavía" text="Agrega uno arriba, pega tu API key y pulsa Probar. Para IA local instala Ollama y agrega 'Ollama (IA local)'." /></div> : (
@@ -71,7 +71,7 @@ export default function AiGateway() {
                 {p.last_error && <div className="text-red-300">{p.last_error}</div>}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="subtle" onClick={() => open(p)}>Configurar</Button>
+                {p.kind !== 'claude_integrado' && <Button variant="subtle" onClick={() => open(p)}>Configurar</Button>}
                 <Button variant="ghost" loading={busy === 't' + p.id} onClick={() => test(p)}>Probar conexión</Button>
                 <Button variant={p.enabled ? 'danger' : 'ghost'} disabled={!p.enabled && p.status !== 'conectado'}
                   onClick={() => act('en', async () => { await api.put(`/api/ai/providers/${p.id}`, { enabled: !p.enabled }); prov.reload() })}>{p.enabled ? 'Desactivar' : 'Activar'}</Button>

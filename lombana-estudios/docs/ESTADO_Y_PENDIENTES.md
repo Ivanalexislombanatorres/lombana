@@ -52,3 +52,12 @@ Mientras tanto, nómina y RR. HH. pueden llevarse como registros personalizados 
 ## Siguiente paso recomendado
 
 Fase 8 (automatizaciones: alerta de inventario bajo, recordatorio de citas, pagos pendientes) y el módulo de Caja/Compras, porque convierten los ERP actuales en operación diaria completa para barberías, tiendas y restaurantes.
+
+## Versión dentro de Claude (artifact)
+
+Fábrica publicada como artifact de Claude: <https://claude.ai/artifact/RTGSXwBjHAjwP2X1tYfcuM>
+- Toda la lógica del servidor reescrita en el navegador (`frontend/src/local/`), con los datos en la base del artifact (privada: solo el propietario y sus Editores).
+- La IA y los agentes usan Claude directamente (sin API keys). Los proveedores externos siguen en la versión de servidor.
+- Pruebas: 19 del motor local (`npm test` en `frontend/`) y recorrido completo en navegador con una base simulada.
+- Límites propios: 256 KB por registro (imágenes de marca ≤ 120 KB en total, respaldos ≤ 240 KB por ERP), 25.000 registros por artifact, sin impresión directa.
+- Compilar: `npm run build:artifact`.

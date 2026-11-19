@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Plus, Printer, Trash2 } from 'lucide-react'
-import { dt, money, num } from '../lib/api'
+import { IS_ARTIFACT, dt, money, num } from '../lib/api'
 import { useLoad } from '../components/ui'
 import { useRt } from './RuntimeApp'
 import type { Product } from './RtCatalog'
@@ -42,7 +42,8 @@ export default function Sales() {
             if (!confirm('¿Anular esta venta? Se devolverán las existencias al inventario.')) return
             try { setDetail(await api.post<Sale>(`/sales/${detail.id}/void`)); sales.reload() } catch (e) { setErr((e as Error).message) }
           }}>Anular venta</button> : <span />}
-          <button className="rt-btn flex items-center gap-1" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</button>
+          {IS_ARTIFACT ? <span className="rt-muted text-xs">La impresión no está disponible dentro de Claude</span>
+            : <button className="rt-btn flex items-center gap-1" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</button>}
         </div>
       </RtModal>
     </div>

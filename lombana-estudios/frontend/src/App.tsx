@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { tokens } from './lib/api'
+import { useEffect } from 'react'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { IS_ARTIFACT, setNavigate, tokens } from './lib/api'
 import FactoryLayout from './factory/Layout'
 import Login from './factory/Login'
 import Dashboard from './factory/Dashboard'
@@ -22,9 +23,11 @@ function Protected({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const nav = useNavigate()
+  useEffect(() => setNavigate(p => nav(p)), [nav])
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={IS_ARTIFACT ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/erp/:slug/*" element={<RuntimeApp />} />
       <Route element={<Protected><FactoryLayout /></Protected>}>
         <Route index element={<Dashboard />} />

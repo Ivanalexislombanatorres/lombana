@@ -4,7 +4,7 @@ import {
   Bot, Building2, ChevronDown, Cpu, Database, FunctionSquare, Hammer, History, Home, LayoutGrid, LogOut, Menu, Palette,
   Settings, Sigma, Users, Zap,
 } from 'lucide-react'
-import { api, tokens } from '../lib/api'
+import { IS_ARTIFACT, api, tokens } from '../lib/api'
 import { Logo } from '../components/icons'
 import { cx } from '../components/ui'
 
@@ -55,7 +55,7 @@ export default function FactoryLayout() {
           </div>
         </nav>
         <div className="absolute bottom-4 left-4 right-4 rounded-xl border border-white/5 bg-white/[.02] p-3 text-[11px] text-slate-500">
-          <FunctionSquare className="mb-1 h-4 w-4 text-gold-400/60" />Fábrica Inteligente de ERP con IA · v1.0
+          <FunctionSquare className="mb-1 h-4 w-4 text-gold-400/60" />Fábrica Inteligente de ERP con IA · v1.1{IS_ARTIFACT ? ' · en Claude' : ''}
         </div>
       </aside>
       {open && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
@@ -75,7 +75,7 @@ export default function FactoryLayout() {
               <div className="panel absolute right-0 mt-2 w-56 p-2 text-sm" onMouseLeave={() => setMenu(false)}>
                 <div className="px-3 py-2 text-xs text-slate-400">{me?.email}</div>
                 <button onClick={() => { setMenu(false); nav('/configuracion') }} className="flex w-full items-center gap-2 rounded px-3 py-2 hover:bg-white/5"><Settings className="h-4 w-4" />Configuración</button>
-                <button onClick={logout} className="flex w-full items-center gap-2 rounded px-3 py-2 text-red-300 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Cerrar sesión</button>
+                {!IS_ARTIFACT && <button onClick={logout} className="flex w-full items-center gap-2 rounded px-3 py-2 text-red-300 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Cerrar sesión</button>}
               </div>
             )}
           </div>

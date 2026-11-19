@@ -1,4 +1,25 @@
 // Cliente HTTP. La fábrica y cada ERP usan tokens separados: un token nunca sirve en otro ámbito.
+import type { LocalApi } from '../local/api'
+
+// Versión dentro de Claude (artifact): las rutas /api se atienden en el navegador con la base del artifact.
+export const IS_ARTIFACT = import.meta.env.VITE_TARGET === 'artifact'
+let local: LocalApi | null = null
+export const setLocalApi = (l: LocalApi) => { local = l }
+let navigateFn: (p: string) => void = p => { location.href = p }
+export const setNavigate = (fn: (p: string) => void) => { navigateFn = fn }
+type Downloader = ((f: { filename: string; data: string }) => Promise<unknown>) | null
+let downloader: () => Promise<Downloader> = async () => null
+export const setDownloader = (fn: () => Promise<Downloader>) => { downloader = fn }
+
+const mem = new Map<string, string>()
+const ls = {
+  get: (k: string) => { try { return localStorage.getItem(k) ?? mem.get(k) ?? null } catch { return mem.get(k) ?? null } },
+  set: (k: string, v: string | null) => {
+    if (v === null) mem.delete(k); else mem.set(k, v)
+    try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v) } catch { /* sin almacenamiento local */ }
+  },
+}
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) { super(message); this.status = status }
@@ -8,16 +29,26 @@ const FACTORY_KEY = 'lombana_factory_token'
 const rtKey = (slug: string) => `lombana_rt_${slug}`
 
 export const tokens = {
-  factory: () => localStorage.getItem(FACTORY_KEY),
-  setFactory: (t: string | null) => (t ? localStorage.setItem(FACTORY_KEY, t) : localStorage.removeItem(FACTORY_KEY)),
-  rt: (slug: string) => localStorage.getItem(rtKey(slug)),
-  setRt: (slug: string, t: string | null) => (t ? localStorage.setItem(rtKey(slug), t) : localStorage.removeItem(rtKey(slug))),
+  factory: () => (IS_ARTIFACT ? 'propietario' : ls.get(FACTORY_KEY)),
+  setFactory: (t: string | null) => ls.set(FACTORY_KEY, t),
+  rt: (slug: string) => ls.get(rtKey(slug)),
+  setRt: (slug: string, t: string | null) => ls.set(rtKey(slug), t),
 }
 
 async function request<T>(path: string, opts: RequestInit & { token?: string | null; onUnauthorized?: () => void } = {}): Promise<T> {
   const headers: Record<string, string> = { ...(opts.headers as Record<string, string>) }
   if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json'
   if (opts.token) headers['Authorization'] = `Bearer ${opts.token}`
+  if (local) {
+    try {
+      const body = opts.body ? JSON.parse(String(opts.body)) : undefined
+      return (await local.handle(opts.method ?? 'GET', path, body, opts.token ?? null)) as T
+    } catch (e) {
+      const st = (e as { status?: number }).status
+      if (st === 401 && opts.onUnauthorized) opts.onUnauthorized()
+      throw new ApiError(st ?? 500, (e as Error).message || 'Error inesperado')
+    }
+  }
   let res: Response
   try {
     res = await fetch(path, { ...opts, headers })
@@ -34,7 +65,7 @@ async function request<T>(path: string, opts: RequestInit & { token?: string | n
   return data as T
 }
 
-const toFactoryLogin = () => { tokens.setFactory(null); if (!location.pathname.startsWith('/login')) location.href = '/login' }
+const toFactoryLogin = () => { if (IS_ARTIFACT) return; tokens.setFactory(null); if (!location.pathname.startsWith('/login')) navigateFn('/login') }
 
 export const api = {
   get: <T>(p: string) => request<T>(p, { token: tokens.factory(), onUnauthorized: toFactoryLogin }),
@@ -47,7 +78,7 @@ export const api = {
 
 export function rtApi(slug: string) {
   const base = `/api/rt/${slug}`
-  const out = () => { tokens.setRt(slug, null); location.href = `/erp/${slug}/login` }
+  const out = () => { tokens.setRt(slug, null); navigateFn(`/erp/${slug}/login`) }
   const o = { token: tokens.rt(slug), onUnauthorized: out }
   return {
     get: <T>(p: string) => request<T>(base + p, { ...o, token: tokens.rt(slug) }),
@@ -55,6 +86,13 @@ export function rtApi(slug: string) {
     put: <T>(p: string, body: unknown) => request<T>(base + p, { ...o, token: tokens.rt(slug), method: 'PUT', body: JSON.stringify(body) }),
     del: <T>(p: string) => request<T>(base + p, { ...o, token: tokens.rt(slug), method: 'DELETE' }),
     download: async (p: string, filename: string) => {
+      if (local) {
+        const r = await request<{ __csv: string }>(base + p, { ...o, token: tokens.rt(slug) })
+        const d = await downloader()
+        if (!d) throw new ApiError(0, 'Esta vista no permite descargar archivos')
+        await d({ filename, data: r.__csv })
+        return
+      }
       const res = await fetch(base + p, { headers: { Authorization: `Bearer ${tokens.rt(slug)}` } })
       if (!res.ok) throw new ApiError(res.status, 'No se pudo descargar')
       const url = URL.createObjectURL(await res.blob())

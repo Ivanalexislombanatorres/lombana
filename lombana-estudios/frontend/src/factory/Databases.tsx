@@ -14,7 +14,7 @@ export default function Databases() {
   if (!d.data) return <ErrorBox error={d.error} />
   return (
     <div className="fade-in space-y-6">
-      <PageHeader title="Bases de Datos" subtitle={`Motor: ${d.data.engine === 'sqlite' ? 'SQLite (local, un usuario)' : 'PostgreSQL'}. Una base central para la fábrica y una independiente por cada ERP.`}
+      <PageHeader title="Bases de Datos" subtitle={`Motor: ${d.data.engine === 'sqlite' ? 'SQLite (local, un usuario)' : d.data.engine === 'artifact' ? 'base de datos del artifact en Claude' : 'PostgreSQL'}. Una base central para la fábrica y un espacio independiente por cada ERP.`}
         actions={<Button icon={<DatabaseBackup className="h-4 w-4" />} onClick={async () => { const r = await api.post<{ file: string }>('/api/databases/factory/backup'); toast(`Respaldo de la fábrica: ${r.file}`); d.reload() }}>Respaldar base central</Button>} />
       <div className="panel p-5">
         <Table head={['Base de datos', 'Tipo', 'Pertenece a', 'Esquema', 'Respaldos', '']}>
