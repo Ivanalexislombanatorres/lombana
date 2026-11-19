@@ -6,6 +6,7 @@ import type { Erp } from '../lib/types'
 import { Badge, Button, ErrorBox, Spinner, cx, statusTone, useLoad } from '../components/ui'
 import { Icon } from '../components/icons'
 import { Chart } from '../components/Chart'
+import { CountUp } from '../runtime/RtDashboard'
 
 type Dash = {
   erps_total: number; erps_activos: number; clientes: number; plantillas: number; proveedores_ia_activos: number
@@ -62,7 +63,7 @@ export default function Dashboard() {
               <div key={s.k} className={cx('rounded-2xl bg-gradient-to-br p-4 ring-1', s.tone)}>
                 <div className="flex items-center gap-3">
                   <s.icon className="h-7 w-7 text-white/80" />
-                  <div><div className="text-xs text-slate-200/80">{s.label}</div><div className="text-3xl font-bold text-white" data-testid={`stat-${s.k}`}>{d[s.k]}</div></div>
+                  <div><div className="text-xs text-slate-200/80">{s.label}</div><div className="text-3xl font-bold text-white" data-testid={`stat-${s.k}`}><CountUp value={d[s.k]} format={n => String(Math.round(n))} /></div></div>
                 </div>
               </div>
             ))}

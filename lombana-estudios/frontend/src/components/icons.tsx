@@ -1,5 +1,5 @@
 import {
-  Armchair, Banknote, Bed, Boxes, Briefcase, Building2, Bus, ChartBar, Factory, Gauge, History, IdCard, Package,
+  Armchair, Banknote, Bed, Bell, ShoppingCart, Sparkles, Zap, Boxes, Briefcase, Building2, Bus, ChartBar, Factory, Gauge, History, IdCard, Package,
   Plane, Receipt, Scissors, Shield, SlidersHorizontal, Stethoscope, Store, Table2, Truck, Users, Utensils, type LucideIcon,
 } from 'lucide-react'
 
@@ -8,6 +8,7 @@ const MAP: Record<string, LucideIcon> = {
   stethoscope: Stethoscope, bed: Bed, plane: Plane, bus: Bus, id: IdCard, sliders: SlidersHorizontal,
   gauge: Gauge, users: Users, package: Package, receipt: Receipt, boxes: Boxes, table: Table2, chart: ChartBar,
   shield: Shield, history: History, building: Building2, wallet: Banknote, box: Armchair,
+  cart: ShoppingCart, zap: Zap, sparkles: Sparkles, bell: Bell,
 }
 
 export function Icon({ name, className = 'h-5 w-5' }: { name: string; className?: string }) {

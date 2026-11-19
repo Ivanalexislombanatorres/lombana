@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Check, ChevronLeft, ChevronRight, Rocket } from 'lucide-react'
-import { api } from '../lib/api'
+import { IS_ARTIFACT, api } from '../lib/api'
 import type { Branding, EntityDef, Erp, ModuleDef, Sector } from '../lib/types'
 import { Badge, Button, ErrorBox, Field, PageHeader, Spinner, cx, useToast } from '../components/ui'
 import { Icon } from '../components/icons'
@@ -48,7 +48,8 @@ export default function Builder() {
   useEffect(() => { // al elegir sector, cargar sus valores sugeridos
     if (!tpl || !mods.length) return
     const en: Record<string, boolean> = {}
-    mods.forEach(m => { en[m.key] = !!m.core || tpl.modules.includes(m.key) })
+    const pro = IS_ARTIFACT ? [...(tpl.modules.includes('ventas') ? ['caja'] : []), ...(tpl.modules.includes('proveedores') ? ['compras'] : []), 'automatizaciones', 'asistente'] : []
+    mods.forEach(m => { en[m.key] = !!m.core || tpl.modules.includes(m.key) || pro.includes(m.key) })
     setEnabled(en)
     setLabels(Object.fromEntries(mods.map(m => [m.key, tpl.labels[m.key] ?? m.name])))
     setEntities(structuredClone(tpl.entities))

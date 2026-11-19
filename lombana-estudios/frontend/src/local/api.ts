@@ -1,44 +1,20 @@
 // API local de LOMBANA ESTUDIOS: implementa en el navegador las mismas rutas /api/... del servidor FastAPI,
 // guardando todo en la base de datos del artifact. Cada ERP vive en su propio espacio de colecciones t/<id>/...
 import { D, FormulaError, catalog, evaluate, fmt, validate, type Dec } from './formula'
-import { DEFAULT_BRANDING, FONTS, MODULES, SECTORS, ValidationError, allPermissions, sector, validateBranding, validateConfig } from './schemas'
+import { NOT_HANDLED, evaluateAlerts, handlePro, profitBlock, type ProCtx } from './pro'
+import { DEFAULT_BRANDING, FONTS, MODULES, PRO_DEFAULTS, SECTORS, ValidationError, allPermissions, sector, validateBranding, validateConfig } from './schemas'
 import { hashPassword, randomToken, readToken, signToken, verifyPassword } from './crypto'
 import { Store, type Doc } from './store'
 
-export class HttpError extends Error {
-  status: number
-  constructor(status: number, msg: string) { super(msg); this.status = status }
-}
-// declarada como función para que TypeScript entienda que corta el flujo (never)
-function E(status: number, msg: string): never { throw new HttpError(status, msg) }
+import { E, HttpError, M4, localDay, nowIso, num, slugify, text, type Any } from './util'
+export { HttpError }
 
-type Any = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-const nowIso = () => new Date().toISOString()
-const M4 = (x: Dec | string | number) => new D(x).toFixed(4)
-const num = (v: unknown, field: string, { min = 0 as number | null, max = null as number | null } = {}): Dec => {
-  let d: Dec
-  try { d = new D(String(v ?? '')); if (!d.isFinite()) throw 0 } catch { return E(422, `${field}: número inválido`) }
-  if (min !== null && d.lt(min)) E(422, `${field}: debe ser mayor o igual a ${min}`)
-  if (max !== null && d.gt(max)) E(422, `${field}: debe ser menor o igual a ${max}`)
-  return d
-}
-const text = (v: unknown, field: string, min: number, max: number, optional = false): string | null => {
-  if (v === null || v === undefined || v === '') { if (optional) return null; return E(422, `${field}: es obligatorio`) }
-  const s = String(v)
-  if (s.length < min) E(422, `${field}: debe tener al menos ${min} caracteres`)
-  if (s.length > max) E(422, `${field}: máximo ${max} caracteres`)
-  return s
-}
-const slugify = (t: string) => t.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'erp'
-const localDay = (iso: string, tz: string) => {
-  try { return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso)) }
-  catch { return iso.slice(0, 10) }
-}
 const SCHEMA_REV = 'artifact_v1'
-const TENANT_COLS = ['roles', 'users', 'customers', 'suppliers', 'products', 'sales', 'movements', 'records', 'settings']
+const TENANT_COLS = ['roles', 'users', 'customers', 'suppliers', 'products', 'sales', 'movements', 'records', 'settings', 'cash_sessions', 'expenses', 'purchases']
 const DEFAULT_ROLES: Record<string, string[]> = {
   Administrador: ['*'],
-  Vendedor: ['dashboard:ver', 'clientes:ver', 'clientes:crear', 'clientes:editar', 'productos:ver', 'ventas:ver', 'ventas:crear', 'registros:ver', 'registros:crear', 'registros:editar'],
+  Vendedor: ['dashboard:ver', 'clientes:ver', 'clientes:crear', 'clientes:editar', 'productos:ver', 'ventas:ver', 'ventas:crear', 'registros:ver', 'registros:crear', 'registros:editar',
+    'caja:ver', 'caja:crear', 'automatizaciones:ver', 'asistente:ver'],
   Consulta: ['*:ver'],
 }
 
@@ -101,7 +77,7 @@ export class LocalApi {
   // ---------------------------------------------------------------- ERP generator
   private configFromSector(code: string, company: Any, modules?: string[] | null) {
     const tpl = sector(code)!
-    const chosen = modules ?? tpl.modules
+    const chosen = modules ?? [...tpl.modules, ...PRO_DEFAULTS(tpl.modules)]
     const keys = [...new Set([...MODULES.filter(m => m.core).map(m => m.key), ...chosen])]
     const names = Object.fromEntries(MODULES.map(m => [m.key, m.name]))
     return { company: { sector: code, operation_type: tpl.operation_type ?? 'mixta', ...company },
@@ -264,6 +240,12 @@ export class LocalApi {
       await log(false, msg)
       return E(502, `${prov.name}: ${msg}`)
     }
+  }
+  async aiLog(task: string, ok: boolean, latency: number, chars: number, error: string | null, promptChars: number) {
+    const d = this.aiDoc()
+    d.items = [{ id: (d.items[0]?.id ?? 0) + 1, provider: 'Claude (integrado)', model: 'Claude (integrado)', task, ok, latency_ms: latency,
+      tokens_in: Math.round(promptChars / 4), tokens_out: Math.round(chars / 4), error, created_at: nowIso() }, ...d.items].slice(0, 200)
+    await this.store.put('meta', 'ai_requests', d)
   }
   private providerOut(p: Any) {
     const month = new Date().toISOString().slice(0, 7)
@@ -468,6 +450,18 @@ export class LocalApi {
     }
     if ((r = m(/^\/api\/brand-templates\/(\d+)$/))) { if (!this.store.get('brand_templates', r[1])) E(404, 'Plantilla no encontrada'); await this.store.del('brand_templates', r[1]); return { ok: true } }
 
+    if (path === '/api/alerts') {
+      const today = localDay(nowIso(), 'America/Bogota'), in7 = localDay(new Date(Date.now() + 7 * 86400_000).toISOString(), 'America/Bogota')
+      const out: Any[] = []
+      for (const l of this.store.all<Any>('licenses')) {
+        const cl = this.store.get<Any>('clients', l.client_id)?.name ?? 'cliente'
+        if (l.status === 'activa' && l.renewal_date < today) out.push({ level: 'alta', title: `Licencia vencida: ${cl}`, detail: `Debió renovarse el ${l.renewal_date} (${l.license_key})`, link: '/clientes' })
+        else if (l.status === 'activa' && l.renewal_date <= in7) out.push({ level: 'media', title: `Licencia por renovar: ${cl}`, detail: `Renueva el ${l.renewal_date}`, link: '/clientes' })
+        if (l.status === 'activa' && l.payment_status === 'vencido') out.push({ level: 'alta', title: `Pago vencido: ${cl}`, detail: l.license_key, link: '/clientes' })
+      }
+      for (const e of this.store.all<Any>('erps')) if (e.current_version !== e.published_version) out.push({ level: 'info', title: `${e.name}: cambios sin publicar`, detail: `Versión ${e.current_version} lista para publicar`, link: `/erps/${e.id}` })
+      return out
+    }
     if (path === '/api/audit') return (this.store.get<Any>('meta', 'audit')?.items ?? [])
 
     // --- fórmulas
@@ -564,6 +558,11 @@ export class LocalApi {
     const c = await this.ctx(slug, token)
     const all = (col: string) => this.store.all<Any>(c.col(col))
     const get = (col: string, id: unknown) => this.store.get<Any>(c.col(col), String(id))
+    const pc: ProCtx = { e: c.e, user: c.user, config: c.config, tz: c.tz, store: this.store, can: c.can, require: c.require, log: c.log, col: c.col, all, get,
+      sample: this.sampler as ProCtx['sample'], aiLog: (task, ok, lat, chars, err, pchars) => this.aiLog(task, ok, lat, chars, err, pchars),
+      agentData: () => this.agentContext('consultor', c.e.id).context }
+    const pro = await handlePro(pc, method, sub, q, b)
+    if (pro !== NOT_HANDLED) return pro
 
     if (sub === '/me') {
       const modules = [...(c.config.modules ?? [])].sort((a: Any, x: Any) => a.order - x.order).filter((mm: Any) => mm.enabled && c.can(`${mm.key}:ver`))
@@ -592,6 +591,7 @@ export class LocalApi {
         ventas_por_dia: days.map(d => ({ dia: d, total: sum(sales.filter(s => s.day === d)).toFixed(2) })),
         top_productos: Object.entries(top).sort((a, x) => x[1].cmp(a[1])).slice(0, 5).map(([k, v]) => ({ name: names[k] ?? '?', total: v.toFixed(2) })),
         registros: rec, currency: c.config.company?.currency ?? 'COP',
+        ...profitBlock(pc), alertas: (c.config.modules ?? []).some((mm: Any) => mm.key === 'automatizaciones' && mm.enabled) ? await evaluateAlerts(pc) : [],
       }
     }
 
@@ -680,6 +680,10 @@ export class LocalApi {
       const items: Any[] = b.items ?? []
       if (!items.length || items.length > 200) E(422, 'items: agrega entre 1 y 200 líneas')
       const discPct = num(b.discount_pct ?? 0, 'discount_pct', { min: 0, max: 100 })
+      const payment = ['efectivo', 'tarjeta', 'transferencia'].includes(b.payment_method) ? b.payment_method : 'efectivo'
+      const cashOn = (c.config.modules ?? []).some((mm: Any) => mm.key === 'caja' && mm.enabled)
+      const session = all('cash_sessions').find(x => x.status === 'abierta')
+      if (cashOn && payment === 'efectivo' && !session) E(409, 'Abre la caja antes de registrar ventas en efectivo (menú Caja y gastos)')
       const needed: Record<string, Dec> = {}
       const lines: [Any, Dec, Dec, Dec][] = []
       for (const it of items) {
@@ -698,7 +702,8 @@ export class LocalApi {
       const sid = this.store.nextId(c.col('sales'))
       const sale = { id: sid, number: `V-${String(sid).padStart(6, '0')}`, customer_id: b.customer_id ?? null, subtotal: M4(subtotal), discount: M4(discount), tax: M4(tax),
         total: M4(subtotal.minus(discount).plus(tax)), status: 'confirmada', created_by: c.user.username, created_at: nowIso(),
-        items: lines.map(([p, qty, price, base]) => ({ product_id: p.id, qty: M4(qty), unit_price: M4(price), tax_rate: p.tax_rate, line_total: M4(base.toDecimalPlaces(2, D.ROUND_HALF_UP)) })) }
+        payment_method: payment, cash_session_id: cashOn && payment === 'efectivo' ? session?.id ?? null : null,
+        items: lines.map(([p, qty, price, base]) => ({ product_id: p.id, qty: M4(qty), unit_price: M4(price), unit_cost: p.cost ?? M4(0), tax_rate: p.tax_rate, line_total: M4(base.toDecimalPlaces(2, D.ROUND_HALF_UP)) })) }
       await this.store.put(c.col('sales'), sid, sale)
       for (const [p, qty] of lines) if (p.kind === 'producto') {
         p.stock = M4(new D(p.stock).minus(qty)); await this.store.put(c.col('products'), p.id, p)

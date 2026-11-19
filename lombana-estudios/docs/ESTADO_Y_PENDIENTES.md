@@ -61,3 +61,13 @@ Fábrica publicada como artifact de Claude: <https://claude.ai/artifact/RTGSXwBj
 - Pruebas: 19 del motor local (`npm test` en `frontend/`) y recorrido completo en navegador con una base simulada.
 - Límites propios: 256 KB por registro (imágenes de marca ≤ 120 KB en total, respaldos ≤ 240 KB por ERP), 25.000 registros por artifact, sin impresión directa.
 - Compilar: `npm run build:artifact`.
+
+### Nivel pro (versión dentro de Claude)
+
+- **Caja y gastos:** apertura con base, ventas y gastos en efectivo ligados a la caja, cierre con arqueo (esperado vs contado y diferencia), historial de cierres, anulación de gastos mientras la caja esté abierta.
+- **Compras:** a proveedores, suben el inventario y recalculan el **costo promedio ponderado**; pago en efectivo (sale de la caja), transferencia o crédito (cuentas por pagar con "marcar como pagada"); anulación protegida si ya se vendió lo comprado.
+- **Utilidad real:** las ventas guardan el costo del producto al momento de vender; estado de resultados del mes (ventas netas − costo − gastos), margen y comparación con el mes anterior.
+- **Automatizaciones y alertas:** 6 reglas configurables (inventario bajo, agenda del día, pendientes vencidos, caja sin cerrar, compras por pagar, meta diaria de ventas) con historial; campana de alertas en cada ERP y en la fábrica (licencias vencidas o por renovar, pagos vencidos, cambios sin publicar). Se evalúan al abrir el ERP o al pulsar "Ejecutar ahora" (no hay un servidor corriendo en segundo plano).
+- **Asistente IA en cada ERP:** chat con Claude que responde con los datos reales del negocio (solo lectura).
+- **Diseño:** tablero con tarjetas animadas, tendencia vs mes anterior, gráfico por método de pago, barras de más vendidos.
+- Pendiente: llevar estas funciones a la versión de servidor (FastAPI) y a la versión de Vercel.

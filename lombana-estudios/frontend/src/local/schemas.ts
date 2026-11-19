@@ -19,12 +19,19 @@ export const MODULES: M[] = [
   { key: 'reportes', name: 'Reportes', icon: 'chart', operational: true },
   { key: 'usuarios', name: 'Usuarios y roles', icon: 'shield', operational: true, core: true },
   { key: 'auditoria', name: 'Auditoría', icon: 'history', operational: true, core: true },
-  ...([['compras', 'Compras', 'cart'], ['caja', 'Caja', 'wallet'], ['bancos', 'Bancos', 'bank'], ['contabilidad', 'Contabilidad', 'book'],
+  { key: 'caja', name: 'Caja y gastos', icon: 'wallet', operational: true },
+  { key: 'compras', name: 'Compras', icon: 'cart', operational: true, depends: ['productos', 'proveedores'] },
+  { key: 'automatizaciones', name: 'Automatizaciones y alertas', icon: 'zap', operational: true },
+  { key: 'asistente', name: 'Asistente IA', icon: 'sparkles', operational: true },
+  ...([['bancos', 'Bancos', 'bank'], ['contabilidad', 'Contabilidad', 'book'],
     ['cxc', 'Cuentas por cobrar', 'arrow-down'], ['cxp', 'Cuentas por pagar', 'arrow-up'], ['presupuestos', 'Presupuestos', 'target'],
     ['nomina', 'Nómina', 'id'], ['rrhh', 'Recursos humanos', 'user-check'], ['activos', 'Activos fijos', 'building'],
-    ['facturacion_electronica', 'Facturación electrónica', 'file'], ['automatizaciones', 'Automatizaciones', 'zap']] as const)
+    ['facturacion_electronica', 'Facturación electrónica', 'file']] as const)
     .map(([key, name, icon]) => ({ key, name, icon, operational: false })),
 ]
+/** Módulos pro que se activan por defecto en los ERP nuevos creados dentro de Claude. */
+export const PRO_DEFAULTS = (tplModules: string[]) => [
+  ...(tplModules.includes('ventas') ? ['caja'] : []), ...(tplModules.includes('proveedores') ? ['compras'] : []), 'automatizaciones', 'asistente']
 export const allPermissions = (mods: string[]) => mods.flatMap(m => ['ver', 'crear', 'editar', 'eliminar'].map(a => `${m}:${a}`))
 
 const sectorFiles = import.meta.glob('../../../templates/sectores/*.json', { eager: true, import: 'default' }) as Record<string, Sector>

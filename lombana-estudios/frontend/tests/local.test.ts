@@ -90,6 +90,7 @@ describe('runtime', () => {
     const { call, fail } = await setup()
     const e = await mk(call, 'Tienda Max', 'tienda'), s = e.slug, u = `/api/rt/${s}`
     const t = await login(call, s)
+    await call('POST', `${u}/cash/open`, { opening_amount: '100000' }, t)
     const cu = await call('POST', `${u}/customers`, { name: 'Juan' }, t)
     const p = await call('POST', `${u}/products`, { sku: 'A1', name: 'Gaseosa', price: '2500', cost: '1500', tax_rate: '19', initial_stock: '10', min_stock: '3' }, t)
     const sv = await call('POST', `${u}/products`, { sku: 'S1', name: 'Domicilio', kind: 'servicio', price: '3000' }, t)
@@ -170,5 +171,58 @@ describe('acceso del propietario y datos frescos', () => {
     for (const k of [...backend.data.keys()]) if (k === `erps/${e.id}`) backend.data.delete(k)
     expect(api.store.invalidate()).toBe(true)
     expect(await call('GET', '/api/erps')).toEqual([])
+  })
+})
+
+describe('nivel pro: caja, compras, gastos, utilidad, alertas y asistente', () => {
+  it('flujo completo de un día de negocio', async () => {
+    const { call, fail } = await setup()
+    const e = await mk(call, 'Tienda Pro', 'tienda'), u = `/api/rt/${e.slug}`, t = await login(call, e.slug)
+    const me = await call('GET', `${u}/me`, undefined, t)
+    expect(me.modules.map((m: any) => m.key)).toEqual(expect.arrayContaining(['caja', 'compras', 'automatizaciones', 'asistente']))
+    const sup = await call('POST', `${u}/suppliers`, { name: 'Distribuidora Andina' }, t)
+    const p = await call('POST', `${u}/products`, { sku: 'AR', name: 'Arroz', price: '5000', cost: '3000', initial_stock: '10', min_stock: '8' }, t)
+    // venta en efectivo sin caja: bloqueada; con tarjeta sí
+    expect((await fail('POST', `${u}/sales`, { items: [{ product_id: p.id, qty: '1' }] }, t))!.status).toBe(409)
+    await call('POST', `${u}/sales`, { payment_method: 'tarjeta', items: [{ product_id: p.id, qty: '1' }] }, t)
+    // caja
+    await call('POST', `${u}/cash/open`, { opening_amount: '50000' }, t)
+    expect((await fail('POST', `${u}/cash/open`, { opening_amount: '1' }, t))!.status).toBe(409)
+    await call('POST', `${u}/sales`, { items: [{ product_id: p.id, qty: '2' }] }, t) // 10.000 efectivo
+    const g = await call('POST', `${u}/expenses`, { concept: 'Domicilio', amount: '3000', method: 'efectivo' }, t)
+    // compra: costo promedio ponderado (7 u a 3000 + 10 u a 3600 => 3352.94)
+    const pur = await call('POST', `${u}/purchases`, { supplier_id: sup.id, payment: 'credito', items: [{ product_id: p.id, qty: '10', unit_cost: '3600' }] }, t)
+    expect(pur.number).toBe('C-000001')
+    const prod = (await call('GET', `${u}/products`, undefined, t))[0]
+    expect([prod.stock, prod.cost]).toEqual(['17.0000', '3352.9412'])
+    const cash = await call('GET', `${u}/cash`, undefined, t)
+    expect([cash.open.ventas_efectivo, cash.open.gastos_efectivo, cash.open.esperado]).toEqual(['10000.0000', '3000.0000', '57000.0000'])
+    const closed = await call('POST', `${u}/cash/close`, { counted_amount: '56500' }, t)
+    expect([closed.status, closed.difference]).toEqual(['cerrada', '-500.0000'])
+    expect((await fail('POST', `${u}/expenses/${g.id}/void`, undefined, t))!.status).toBe(409)
+    // utilidad: ventas netas 15.000 - costo 9.000 (3 u x 3000) - gastos 3.000 = 3.000
+    const d = await call('GET', `${u}/dashboard`, undefined, t)
+    expect([d.ventas_netas_mes, d.costo_ventas_mes, d.gastos_mes, d.utilidad_mes, d.margen_mes]).toEqual(['15000.00', '9000.00', '3000.00', '3000.00', '20.0'])
+    expect(d.ventas_por_metodo.length).toBe(2)
+    expect(d.alertas.some((a: any) => a.rule === 'compras_credito')).toBe(true)
+    await call('POST', `${u}/purchases/${pur.id}/pay`, undefined, t)
+    // anular compra: no si ya se vendió parte de lo comprado de más
+    await call('POST', `${u}/sales`, { payment_method: 'transferencia', items: [{ product_id: p.id, qty: '10' }] }, t)
+    expect((await fail('POST', `${u}/purchases/${pur.id}/void`, undefined, t))!.status).toBe(409)
+    // automatizaciones: meta diaria
+    await call('PUT', `${u}/automations/meta_ventas`, { enabled: true, params: { meta_diaria: '100000' } }, t)
+    const run = await call('POST', `${u}/automations/run`, undefined, t)
+    expect(run.alerts.find((a: any) => a.rule === 'meta_ventas').title).toContain('%')
+    expect(run.alerts.find((a: any) => a.rule === 'stock_bajo')).toBeTruthy()
+    expect((await call('GET', `${u}/automations`, undefined, t)).history.length).toBe(1)
+    // asistente IA con datos reales
+    const a = await call('POST', `${u}/assistant`, { messages: [{ role: 'user', content: '¿Qué debo reabastecer?' }] }, t)
+    expect(a.text).toContain('Arroz')
+    // la fábrica ve alertas de licencias
+    const c = await call('POST', '/api/clients', { name: 'Cliente X' })
+    const plans = await call('GET', '/api/plans')
+    const l = await call('POST', '/api/licenses', { client_id: c.id, plan_id: plans[0].id, start_date: '2020-01-01' })
+    expect(l.renewal_date).toBe('2020-02-01')
+    expect((await call('GET', '/api/alerts')).some((x: any) => x.title.includes('vencida'))).toBe(true)
   })
 })

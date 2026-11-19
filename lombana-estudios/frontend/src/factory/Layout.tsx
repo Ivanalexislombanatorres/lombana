@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
-  Bot, Building2, ChevronDown, Cpu, Database, FunctionSquare, Hammer, History, Home, LayoutGrid, LogOut, Menu, Palette,
+  Bell, Bot, Building2, ChevronDown, Cpu, Database, FunctionSquare, Hammer, History, Home, LayoutGrid, LogOut, Menu, Palette,
   Settings, Sigma, Users, Zap,
 } from 'lucide-react'
 import { IS_ARTIFACT, api, tokens } from '../lib/api'
@@ -27,6 +27,10 @@ export default function FactoryLayout() {
   const [me, setMe] = useState<{ name: string; email: string } | null>(null)
   const [open, setOpen] = useState(false)
   const [menu, setMenu] = useState(false)
+  const [bell, setBell] = useState(false)
+  const [alerts, setAlerts] = useState<{ level: string; title: string; detail: string; link?: string }[]>([])
+  const loadAlerts = () => { if (IS_ARTIFACT) api.get<typeof alerts>('/api/alerts').then(setAlerts).catch(() => {}) }
+  useEffect(loadAlerts, [])
   const nav = useNavigate()
   useEffect(() => { api.get<{ name: string; email: string }>('/api/auth/me').then(setMe).catch(() => {}) }, [])
   const logout = () => { tokens.setFactory(null); nav('/login') }
@@ -64,7 +68,19 @@ export default function FactoryLayout() {
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-white/5 bg-ink-950/70 px-4 py-3 backdrop-blur lg:px-8">
           <button aria-label="Menú" className="rounded p-1 lg:hidden" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
           <div className="text-sm font-semibold tracking-wide text-slate-300">ERP <span className="gold-text">FACTORY</span> <span className="text-xs text-slate-500">v1.0</span></div>
-          <div className="ml-auto relative">
+          {IS_ARTIFACT && <div className="relative ml-auto">
+            <button aria-label="Alertas de la fábrica" onClick={() => { setBell(b => !b); loadAlerts() }} className="relative rounded-full p-2 text-slate-300 hover:bg-white/5">
+              <Bell className="h-5 w-5" />{alerts.length > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">{alerts.length}</span>}
+            </button>
+            {bell && <div className="panel absolute right-0 z-40 mt-2 w-96 p-4 text-sm" onMouseLeave={() => setBell(false)}>
+              <b className="text-white">Alertas de la fábrica</b>
+              {!alerts.length ? <p className="mt-2 text-slate-400">Todo en orden.</p> : <ul className="mt-2 space-y-2">{alerts.map((a, i) => (
+                <li key={i}><button className="text-left" onClick={() => { setBell(false); if (a.link) nav(a.link) }}>
+                  <span className={a.level === 'alta' ? 'text-red-300' : a.level === 'media' ? 'text-gold-200' : 'text-emerald-300'}>● </span>
+                  <span className="text-slate-100">{a.title}</span><span className="block text-xs text-slate-500">{a.detail}</span></button></li>))}</ul>}
+            </div>}
+          </div>}
+          <div className={IS_ARTIFACT ? 'relative' : 'ml-auto relative'}>
             <button onClick={() => setMenu(m => !m)} className="flex items-center gap-2 rounded-full border border-white/10 py-1 pl-1 pr-3 text-sm hover:border-gold-400/40">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-b from-gold-300 to-gold-500 text-xs font-bold text-ink-950">
                 {(me?.name ?? 'A').slice(0, 1).toUpperCase()}

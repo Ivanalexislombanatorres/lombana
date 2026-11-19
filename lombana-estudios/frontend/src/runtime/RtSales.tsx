@@ -6,7 +6,7 @@ import { useRt } from './RuntimeApp'
 import type { Product } from './RtCatalog'
 import { Pill, RtError, RtField, RtHeader, RtModal, RtTable } from './rtui'
 
-type Sale = { id: number; number: string; customer: string; subtotal: string; discount: string; tax: string; total: string; status: string; created_by: string; created_at: string
+type Sale = { id: number; number: string; customer: string; subtotal: string; discount: string; tax: string; total: string; status: string; created_by: string; created_at: string; payment_method?: string
   items?: { product: string; qty: string; unit_price: string; tax_rate: string; line_total: string }[] }
 type Line = { product_id: number; qty: string; unit_price: string }
 
@@ -64,7 +64,7 @@ function Invoice({ s }: { s: Sale }) {
         <div className="text-right"><div className="text-xs uppercase text-slate-500">Comprobante de venta</div><div className="text-xl font-bold" style={{ color: t === 'minimal' ? undefined : b.primary }}>{s.number}</div><div className="text-xs">{dt(s.created_at)}</div>
           {s.status === 'anulada' && <div className="mt-1 font-bold text-red-600">ANULADA</div>}</div>
       </div>
-      <p className="mb-3 text-sm"><b>Cliente:</b> {s.customer}</p>
+      <p className="mb-3 text-sm"><b>Cliente:</b> {s.customer}{s.payment_method ? <> · <b>Pago:</b> {s.payment_method}</> : null}</p>
       <table className="mb-4 w-full text-sm">
         <thead><tr className="border-b text-left text-xs uppercase text-slate-500"><th className="py-1">Producto</th><th>Cant.</th><th>Precio</th><th>IVA %</th><th className="text-right">Total</th></tr></thead>
         <tbody>{s.items?.map((i, k) => <tr key={k} className="border-b border-slate-100"><td className="py-1">{i.product}</td><td>{num(i.qty)}</td><td>{money(i.unit_price, cur)}</td><td>{num(i.tax_rate)}</td><td className="text-right">{money(i.line_total, cur)}</td></tr>)}</tbody>
@@ -88,6 +88,7 @@ function NewSale({ onClose, onDone }: { onClose: () => void; onDone: (id: number
   const custs = useLoad(() => api.get<{ id: number; name: string }[]>('/customers'), [api])
   const [customer, setCustomer] = useState('')
   const [disc, setDisc] = useState('0')
+  const [pay, setPay] = useState('efectivo')
   const [lines, setLines] = useState<Line[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -104,7 +105,7 @@ function NewSale({ onClose, onDone }: { onClose: () => void; onDone: (id: number
     setErr(null); setBusy(true)
     try {
       const r = await api.post<{ id: number }>('/sales', {
-        customer_id: customer ? Number(customer) : null, discount_pct: disc || '0',
+        customer_id: customer ? Number(customer) : null, discount_pct: disc || '0', payment_method: pay,
         items: lines.map(l => ({ product_id: l.product_id, qty: l.qty, ...(l.unit_price !== byId[l.product_id]?.price ? { unit_price: l.unit_price } : {}) })),
       })
       onDone(r.id)
@@ -113,10 +114,15 @@ function NewSale({ onClose, onDone }: { onClose: () => void; onDone: (id: number
   return (
     <RtModal open title="Nueva venta" onClose={onClose} wide>
       <div className="mb-3 grid gap-3 sm:grid-cols-3">
-        <RtField label="Cliente"><select className="rt-inp" value={customer} onChange={e => setCustomer(e.target.value)}><option value="">Consumidor final</option>{custs.data?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></RtField>
+        <RtField label="Cliente de la venta"><select className="rt-inp" value={customer} onChange={e => setCustomer(e.target.value)}><option value="">Consumidor final</option>{custs.data?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></RtField>
         <RtField label="Agregar producto"><select aria-label="Agregar producto" className="rt-inp" value="" onChange={e => add(Number(e.target.value))}>
           <option value="">Elegir…</option>{active.map(p => <option key={p.id} value={p.id}>{p.name} — {money(p.price, cur)}{p.kind === 'producto' ? ` (hay ${num(p.stock)})` : ''}</option>)}</select></RtField>
         <RtField label="Descuento %"><input className="rt-inp" type="number" min={0} max={100} value={disc} onChange={e => setDisc(e.target.value)} /></RtField>
+      </div>
+      <div className="mb-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Método de pago">
+        {[['efectivo', 'Efectivo'], ['tarjeta', 'Tarjeta'], ['transferencia', 'Transferencia']].map(([v, l]) => (
+          <button key={v} type="button" role="radio" aria-checked={pay === v} onClick={() => setPay(v)} className={pay === v ? 'rt-btn' : 'rt-btn-ghost'}>{l}</button>
+        ))}
       </div>
       <table className="w-full text-sm">
         <thead><tr className="text-left text-xs"><th>Producto</th><th className="w-24">Cantidad</th><th className="w-32">Precio</th><th className="text-right">Total</th><th /></tr></thead>

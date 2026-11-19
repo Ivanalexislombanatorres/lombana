@@ -12,6 +12,7 @@ import { Parties, Products, Inventory } from './RtCatalog'
 import Sales from './RtSales'
 import Records from './RtRecords'
 import { Reports, Users, RtAudit } from './RtAdmin'
+import { AlertsBell, Assistant, Automations, Cash, Purchases } from './RtPro'
 
 export type Me = {
   user: { id: number; username: string; name: string; role: string }; permissions: string[]; modules: ModuleCfg[]; entities: EntityDef[]
@@ -21,8 +22,8 @@ type Ctx = { me: Me; api: ReturnType<typeof rtApi>; can: (p: string) => boolean;
 const RtCtx = createContext<Ctx>(null as unknown as Ctx)
 export const useRt = () => useContext(RtCtx)
 
-const ICONS: Record<string, string> = { dashboard: 'gauge', clientes: 'users', proveedores: 'truck', productos: 'package', ventas: 'receipt', inventario: 'boxes', registros: 'table', reportes: 'chart', usuarios: 'shield', auditoria: 'history' }
-const PATHS: Record<string, string> = { dashboard: '', clientes: 'clientes', proveedores: 'proveedores', productos: 'productos', ventas: 'ventas', inventario: 'inventario', reportes: 'reportes', usuarios: 'usuarios', auditoria: 'auditoria' }
+const ICONS: Record<string, string> = { dashboard: 'gauge', clientes: 'users', proveedores: 'truck', productos: 'package', ventas: 'receipt', inventario: 'boxes', registros: 'table', reportes: 'chart', usuarios: 'shield', auditoria: 'history', caja: 'wallet', compras: 'cart', automatizaciones: 'zap' }
+const PATHS: Record<string, string> = { dashboard: '', clientes: 'clientes', proveedores: 'proveedores', productos: 'productos', ventas: 'ventas', inventario: 'inventario', reportes: 'reportes', usuarios: 'usuarios', auditoria: 'auditoria', caja: 'caja', compras: 'compras', automatizaciones: 'automatizaciones' }
 
 export function applyHeadBranding(b: Branding | undefined, fallbackTitle: string) {
   document.title = b?.software_name || fallbackTitle
@@ -56,6 +57,7 @@ function Shell() {
   const links: { to: string; label: string; icon: string }[] = []
   const root = `/erp/${slug}`
   me.modules.forEach(m => {
+    if (m.key === 'asistente') return
     if (m.key === 'registros') me.entities.forEach(e => links.push({ to: `${root}/registros/${e.key}`, label: e.label, icon: 'table' }))
     else links.push({ to: PATHS[m.key] ? `${root}/${PATHS[m.key]}` : root, label: m.label, icon: ICONS[m.key] })
   })
@@ -83,7 +85,7 @@ function Shell() {
           <header className="rt-card m-3 mb-0 flex items-center gap-3 px-4 py-2" style={{ borderRadius: 12 }}>
             <button aria-label="Menú" className="lg:hidden" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
             <div className="text-sm font-semibold">{me.company.name}</div>
-            <div className="ml-auto flex items-center gap-3 text-sm"><span className="rt-muted hidden sm:inline">{me.user.name} · {me.user.role}</span>
+            <div className="ml-auto flex items-center gap-3 text-sm"><AlertsBell /><span className="rt-muted hidden sm:inline">{me.user.name} · {me.user.role}</span>
               <button onClick={logout} className="rt-btn-ghost flex items-center gap-1"><LogOut className="h-4 w-4" />{IS_ARTIFACT ? 'Volver a la fábrica' : 'Salir'}</button></div>
           </header>
           <main className="flex-1 p-3 lg:p-6">
@@ -98,9 +100,13 @@ function Shell() {
               <Route path="reportes" element={<Reports />} />
               <Route path="usuarios" element={<Users />} />
               <Route path="auditoria" element={<RtAudit />} />
+              <Route path="caja" element={<Cash />} />
+              <Route path="compras" element={<Purchases />} />
+              <Route path="automatizaciones" element={<Automations />} />
               <Route path="*" element={<Navigate to={root} replace />} />
             </Routes>
           </main>
+          <Assistant />
           {(b.contact_email || b.contact_phone) && <footer className="rt-muted px-6 pb-3 text-xs">{b.company_name} · {b.contact_email} {b.contact_phone}</footer>}
         </div>
       </div>
