@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { NavLink, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { LogOut, Menu } from 'lucide-react'
-import { rtApi, tokens } from '../lib/api'
+import { IS_ARTIFACT, rtApi, tokens } from '../lib/api'
 import type { Branding, Company, EntityDef, ModuleCfg } from '../lib/types'
 import { cx } from '../components/ui'
 import { Icon } from '../components/icons'
@@ -43,7 +43,8 @@ function Shell() {
     api.get<Me>('/me').then(m => { setMe(m); applyHeadBranding(m.branding, m.erp.name) }).catch(e => setErr(e.message))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [api, slug])
-  if (err) return <div className="grid min-h-full place-items-center bg-white p-6 text-slate-700">{err}</div>
+  if (err) return <div className="grid min-h-full place-items-center bg-white p-6 text-center text-slate-700"><div><p>{err}</p>
+    {IS_ARTIFACT && <button className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white" onClick={() => nav('/erps')}>Volver a la fábrica</button>}</div></div>
   if (!me) return <div className="grid min-h-full place-items-center bg-white text-slate-500">Cargando…</div>
   const can = (perm: string) => {
     const [mod, act] = perm.split(':')
@@ -58,7 +59,7 @@ function Shell() {
     if (m.key === 'registros') me.entities.forEach(e => links.push({ to: `${root}/registros/${e.key}`, label: e.label, icon: 'table' }))
     else links.push({ to: PATHS[m.key] ? `${root}/${PATHS[m.key]}` : root, label: m.label, icon: ICONS[m.key] })
   })
-  const logout = () => { tokens.setRt(slug, null); nav(`/erp/${slug}/login`) }
+  const logout = () => { tokens.setRt(slug, null); nav(IS_ARTIFACT ? '/erps' : `/erp/${slug}/login`) }
 
   return (
     <RtCtx.Provider value={{ me, api, can, slug }}>
@@ -83,7 +84,7 @@ function Shell() {
             <button aria-label="Menú" className="lg:hidden" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
             <div className="text-sm font-semibold">{me.company.name}</div>
             <div className="ml-auto flex items-center gap-3 text-sm"><span className="rt-muted hidden sm:inline">{me.user.name} · {me.user.role}</span>
-              <button onClick={logout} className="rt-btn-ghost flex items-center gap-1"><LogOut className="h-4 w-4" />Salir</button></div>
+              <button onClick={logout} className="rt-btn-ghost flex items-center gap-1"><LogOut className="h-4 w-4" />{IS_ARTIFACT ? 'Volver a la fábrica' : 'Salir'}</button></div>
           </header>
           <main className="flex-1 p-3 lg:p-6">
             <Routes>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Copy, DatabaseBackup, ExternalLink, History, Palette, PlayCircle, RotateCcw, Save, Send, Upload } from 'lucide-react'
-import { IS_ARTIFACT, api, dt } from '../lib/api'
+import { ArrowDown, ArrowUp, Copy, DatabaseBackup, History, Palette, PlayCircle, RotateCcw, Save, Send, Upload } from 'lucide-react'
+import { api, dt } from '../lib/api'
 import type { EntityDef, Erp, ModuleCfg, ModuleDef } from '../lib/types'
 import { Badge, Button, ErrorBox, Field, Modal, PageHeader, Spinner, Table, cx, statusTone, useLoad, useToast } from '../components/ui'
 import EntityDesigner from './EntityDesigner'
+import OpenErp from './OpenErp'
 
 type Health = { ok: boolean; error: string | null; revision: string | null; head: string; pending_migrations: boolean; counts: Record<string, number> }
 type Version = { version: number; note: string; created_by: string; created_at: string; published: boolean }
@@ -36,9 +37,7 @@ export default function ErpDetail() {
           <Badge tone={statusTone(erp.status)}>{erp.status}</Badge>
           {erp.current_version !== erp.published_version &&
             <Button icon={<Send className="h-4 w-4" />} loading={busy === 'pub'} onClick={() => run('pub', async () => { update(await api.post<Erp>(`/api/erps/${erp.id}/publish`, {})); toast('Versión publicada en el ERP') })}>Publicar v{erp.current_version}</Button>}
-          {erp.status === 'activo' && (IS_ARTIFACT
-            ? <Link to={`/erp/${erp.slug}/login`}><Button variant="ghost" icon={<ExternalLink className="h-4 w-4" />}>Abrir ERP</Button></Link>
-            : <a href={`/erp/${erp.slug}/login`} target="_blank" rel="noreferrer"><Button variant="ghost" icon={<ExternalLink className="h-4 w-4" />}>Abrir ERP</Button></a>)}
+          {erp.status === 'activo' && <OpenErp slug={erp.slug} />}
         </>} />
       <div className="mb-4 flex gap-1 border-b border-white/10">
         {TABS.map((t, i) => <button key={t} onClick={() => setTab(i)} className={cx('-mb-px border-b-2 px-4 py-2 text-sm', i === tab ? 'border-gold-400 text-gold-200' : 'border-transparent text-slate-400 hover:text-white')}>{t}</button>)}

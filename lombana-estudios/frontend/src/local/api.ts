@@ -52,9 +52,13 @@ export class LocalApi {
   private ownerName: string
   constructor(store: Store, sampler: () => Promise<Sampler>, ownerName = 'Propietario') { this.store = store; this.sampler = sampler; this.ownerName = ownerName }
 
-  async init() {
-    await Promise.all(['meta', 'clients', 'plans', 'erps', 'erp_versions', 'brand_templates', 'licenses', 'installations', 'formulas',
+  private loadFactory() {
+    return Promise.all(['meta', 'clients', 'plans', 'erps', 'erp_versions', 'brand_templates', 'licenses', 'installations', 'formulas',
       'ai_providers', 'ai_routes', 'factory_backups'].map(c => this.store.load(c)))
+  }
+
+  async init() {
+    await this.loadFactory()
     let s = this.store.get<Any>('meta', 'secret')
     if (!s) { s = { value: randomToken(48) }; await this.store.put('meta', 'secret', s) }
     this.secret = s.value
@@ -295,6 +299,7 @@ export class LocalApi {
 
   // ---------------------------------------------------------------- enrutador
   async handle(method: string, url: string, body: Any, token: string | null): Promise<unknown> {
+    await this.loadFactory()  // inmediato si ya está en caché; relee si se invalidó
     const [path, qs] = url.split('?')
     const q = Object.fromEntries(new URLSearchParams(qs ?? ''))
     const m = (re: RegExp) => path.match(re)
@@ -540,6 +545,14 @@ export class LocalApi {
     let r: RegExpMatchArray | null
     const m = (re: RegExp) => sub.match(re)
     if (sub === '/public') { const e = this.erpBySlug(slug); await this.tenant(e.id); return { slug, name: e.name, branding: this.store.get<Any>(this.T(e.id, 'settings'), 'branding')?.value } }
+    if (sub === '/owner-session') {
+      // Dentro de Claude solo el propietario y sus Editores abren la fábrica: entran sin contraseña como administrador
+      const e = this.erpBySlug(slug); await this.tenant(e.id)
+      const admins = this.store.all<Any>(this.T(e.id, 'users')).filter(u => u.is_active && (this.store.get<Any>(this.T(e.id, 'roles'), u.role_id)?.permissions ?? []).includes('*'))
+      const u = admins[0] ?? E(409, 'Este ERP no tiene un administrador activo')
+      await this.audit(`${this.ownerName} (propietario)`, 'acceso_propietario', 'usuario', u.id, {}, e.id)
+      return { token: await signToken(this.secret, { sub: u.id, scope: `erp:${slug}`, exp: Date.now() + 8 * 3600_000 }) }
+    }
     if (sub === '/login') {
       const e = this.erpBySlug(slug); await this.tenant(e.id)
       const lim = this.limiter(`${slug}|${String(b.username).toLowerCase()}`)

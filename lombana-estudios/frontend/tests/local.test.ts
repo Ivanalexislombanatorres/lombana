@@ -158,3 +158,17 @@ describe('límites de la base de Claude', () => {
     expect((await fail('PUT', `/api/erps/${e.id}/branding`, { branding: { ...e.branding, logo: big } }))!.msg).toContain('120 KB')
   })
 })
+
+describe('acceso del propietario y datos frescos', () => {
+  it('el propietario entra sin contraseña y la caché se relee', async () => {
+    const { api, call, backend } = await setup()
+    const e = await mk(call)
+    const { token } = await call('POST', `/api/rt/${e.slug}/owner-session`)
+    const me = await call('GET', `/api/rt/${e.slug}/me`, undefined, token)
+    expect(me.user.username).toBe('admin')
+    // un cambio hecho por fuera (otra pestaña o el chat) se ve tras invalidar
+    for (const k of [...backend.data.keys()]) if (k === `erps/${e.id}`) backend.data.delete(k)
+    expect(api.store.invalidate()).toBe(true)
+    expect(await call('GET', '/api/erps')).toEqual([])
+  })
+})

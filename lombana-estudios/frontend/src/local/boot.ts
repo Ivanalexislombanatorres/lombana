@@ -25,6 +25,10 @@ export async function boot(): Promise<string | undefined> {
   const api = new LocalApi(new Store(backend), sampler)
   await withTimeout(api.init(), 20000, 'La base de datos del artifact no respondió. Recarga la página en unos segundos.')
   setLocalApi(api)
+  // Si los datos cambiaron desde otra pestaña o desde el chat, se releen al volver a la página
+  const refresh = () => { if (document.visibilityState === 'visible') api.store.invalidate() }
+  document.addEventListener('visibilitychange', refresh)
+  window.addEventListener('focus', refresh)
   return banner
 }
 

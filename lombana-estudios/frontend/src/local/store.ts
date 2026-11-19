@@ -53,6 +53,7 @@ export class Store {
   private cache = new Map<string, Map<string, Doc>>()
   private loading = new Map<string, Promise<void>>()
   private queue = new Map<string, Promise<void>>()
+  private pending = 0
   backend: Backend
   constructor(backend: Backend) { this.backend = backend }
 
@@ -96,8 +97,15 @@ export class Store {
   /** Una escritura a la vez por documento (regla de la base del artifact). */
   private serial(path: string, fn: () => Promise<void>) {
     const prev = this.queue.get(path) ?? Promise.resolve()
-    const next = prev.catch(() => {}).then(fn)
+    this.pending++
+    const next = prev.catch(() => {}).then(fn).finally(() => { this.pending-- })
     this.queue.set(path, next)
     return next
+  }
+  /** Olvida la caché para releer de la base (cambios hechos desde otra pestaña o desde el chat). */
+  invalidate(): boolean {
+    if (this.pending > 0) return false
+    this.cache.clear(); this.loading.clear()
+    return true
   }
 }

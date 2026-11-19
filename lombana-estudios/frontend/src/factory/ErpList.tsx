@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Database, ExternalLink, Plus, Settings2 } from 'lucide-react'
-import { IS_ARTIFACT, api, relTime } from '../lib/api'
+import { Database, Plus, Settings2 } from 'lucide-react'
+import { api, relTime } from '../lib/api'
 import type { Erp } from '../lib/types'
+import OpenErp from './OpenErp'
 import { Badge, Button, Empty, ErrorBox, PageHeader, Spinner, statusTone, useLoad } from '../components/ui'
 
 export default function ErpList() {
@@ -42,9 +43,7 @@ export default function ErpList() {
               </div>
               <div className="mt-auto flex gap-2">
                 <Link to={`/erps/${e.id}`} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 py-2 text-sm hover:border-gold-400/50"><Settings2 className="h-4 w-4" />Gestionar</Link>
-                {e.status === 'activo' && (IS_ARTIFACT
-                  ? <Link to={`/erp/${e.slug}/login`} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-white/5 py-2 text-sm hover:bg-white/10"><ExternalLink className="h-4 w-4" />Abrir ERP</Link>
-                  : <a href={`/erp/${e.slug}/login`} target="_blank" rel="noreferrer" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-white/5 py-2 text-sm hover:bg-white/10"><ExternalLink className="h-4 w-4" />Abrir ERP</a>)}
+                {e.status === 'activo' && <OpenErp slug={e.slug} variant="subtle" className="flex-1" />}
               </div>
             </div>
           ))}
